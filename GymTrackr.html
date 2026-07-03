@@ -1,0 +1,1993 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#1a1728">
+<title>GymTracker</title>
+<style>
+  :root{
+    --bg1:#f7f7fb; --bg2:#f1f0f7; --card:#ffffff; --card2:#f5f4fa; --line:#e9e8f1;
+    --txt:#1b1826; --muted:#7c7789;
+    --ink:#1c1930;
+    --acc:#6c5ce7; --acc2:#8a7cf0; --acc3:#d98e57; --acc4:#48a3b5;
+    --grad:linear-gradient(135deg,#6c5ce7 0%,#8a7cf0 100%);
+    --grad2:linear-gradient(135deg,#4a80cf 0%,#6c5ce7 100%);
+    --warn:#d29a4a; --danger:#df6b6b; --radius:20px;
+    --shadow:0 1px 2px rgba(20,18,40,.04), 0 12px 30px rgba(20,18,40,.06);
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{
+    background:
+      radial-gradient(1200px 720px at 50% -14%, rgba(108,92,231,.08), transparent 62%),
+      radial-gradient(900px 600px at 100% 108%, rgba(72,163,181,.05), transparent 60%),
+      linear-gradient(180deg,var(--bg1) 0%,var(--bg2) 100%);
+    background-attachment:fixed; color:var(--txt);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    padding-bottom:96px; line-height:1.45; letter-spacing:.1px;
+  }
+  header{
+    position:sticky; top:0; z-index:20;
+    background:linear-gradient(135deg,#272240 0%,#191627 100%);
+    padding:15px 18px; display:flex; align-items:center; justify-content:space-between;
+    box-shadow:0 4px 22px rgba(20,18,40,.20); border-bottom:1px solid rgba(255,255,255,.05);
+  }
+  .brand{display:flex; align-items:center; gap:12px}
+  .logo-badge{
+    width:42px; height:42px; border-radius:13px; flex:0 0 42px;
+    background:linear-gradient(135deg,rgba(138,124,240,.32),rgba(255,255,255,.08));
+    border:1px solid rgba(255,255,255,.18);
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:inset 0 1px 6px rgba(255,255,255,.18), 0 3px 10px rgba(0,0,0,.22);
+  }
+  .logo-badge svg{width:27px; height:27px; display:block}
+  header h1{font-size:21px; margin:0; letter-spacing:2px; color:#fff; font-weight:800; line-height:1}
+  header h1 span{color:#a99bff}
+  header .tagline{font-size:9.5px; letter-spacing:2.6px; color:rgba(255,255,255,.55); font-weight:600; text-transform:uppercase; margin-top:3px; white-space:nowrap}
+  #streak{color:#fff !important; font-weight:700; background:rgba(255,255,255,.10); border:1px solid rgba(255,255,255,.14); padding:5px 13px; border-radius:999px; white-space:nowrap; font-size:13px; flex:0 0 auto}
+  @media (max-width:400px){
+    header{padding:12px 12px; gap:8px}
+    .brand{gap:8px; min-width:0}
+    .logo-badge{width:34px; height:34px; flex:0 0 34px; border-radius:11px}
+    .logo-badge svg{width:21px; height:21px}
+    header h1{font-size:15.5px; letter-spacing:.4px}
+    header .tagline{font-size:7.5px; letter-spacing:1.4px}
+    #streak{font-size:10.5px; padding:4px 8px}
+  }
+  .wrap{max-width:1200px; margin:0 auto; padding:24px 20px 20px}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:20px; margin-bottom:16px; box-shadow:var(--shadow); transition:transform .2s ease, box-shadow .2s ease}
+  /* responsiv "dashboard"-layout: fyll bredden med flera kolumner på större skärmar */
+  @media (min-width:720px){
+    .page.active{column-count:2; column-gap:18px}
+    .card{break-inside:avoid; -webkit-column-break-inside:avoid; page-break-inside:avoid; margin-top:0}
+  }
+  @media (min-width:1080px){
+    .page.active{column-count:3; column-gap:20px}
+  }
+  @media (hover:hover){
+    .card:hover{transform:translateY(-2px); box-shadow:0 2px 6px rgba(20,18,40,.06), 0 22px 46px rgba(20,18,40,.10)}
+  }
+  .card h2{font-size:12px; margin:0 0 15px; color:var(--muted); font-weight:700; text-transform:uppercase; letter-spacing:1.4px; display:flex; align-items:center; gap:9px}
+  .card h2::before{content:""; width:3px; height:13px; border-radius:3px; background:var(--acc); flex:0 0 3px}
+  label{display:block; font-size:13px; color:var(--muted); margin:10px 0 5px; font-weight:600}
+  input,select,textarea{
+    width:100%; background:var(--card2); border:2px solid var(--line); color:var(--txt);
+    padding:12px; border-radius:12px; font-size:16px; outline:none; font-family:inherit;
+  }
+  input:focus,select:focus,textarea:focus{border-color:var(--acc); background:#fff; box-shadow:0 0 0 3px rgba(108,92,231,.12)}
+  .row{display:flex; gap:10px}
+  .row>*{flex:1}
+  button{
+    background:var(--grad); color:#fff; border:none; padding:13px 16px; border-radius:13px;
+    font-size:15px; font-weight:700; cursor:pointer; width:100%; margin-top:14px; transition:transform .12s, filter .15s, box-shadow .15s;
+    box-shadow:0 4px 14px rgba(108,92,231,.28); letter-spacing:.2px;
+  }
+  button:active{transform:scale(.97); filter:brightness(1.04)}
+  button.sec{background:var(--card2); color:var(--acc); border:2px solid var(--line); box-shadow:none}
+  button.ghost{background:transparent; color:var(--muted); border:2px solid var(--line); margin-top:0; padding:8px 12px; font-size:13px; width:auto; box-shadow:none}
+  button.danger{background:transparent; color:var(--danger); border:2px solid #fecaca; box-shadow:none}
+  .stepper{display:flex; gap:8px; align-items:stretch}
+  .stepper input{text-align:center; font-weight:800}
+  .stp{width:54px; flex:0 0 54px; margin-top:0; font-size:24px; padding:0; background:var(--card2); color:var(--acc); border:2px solid var(--line); box-shadow:none; line-height:1}
+  .stp:active{background:var(--acc); color:#fff}
+  .heat{display:grid; grid-template-columns:repeat(7,1fr); gap:4px}
+  .heat .d{aspect-ratio:1; border-radius:5px; background:var(--card2)}
+  .edit{color:var(--acc2); cursor:pointer; font-size:15px; padding:0 4px; background:none; border:none; width:auto; margin:0; box-shadow:none}
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:11px}
+  .stat{position:relative; overflow:hidden; border-radius:16px; padding:18px 15px 16px; text-align:center; color:#fff;
+    background:linear-gradient(158deg,#2b2545 0%,#1b1830 100%); box-shadow:0 6px 18px rgba(20,18,40,.14)}
+  .stat::after{content:""; position:absolute; top:13px; left:14px; width:7px; height:7px; border-radius:50%; box-shadow:0 0 10px currentColor}
+  .stat:nth-child(1)::after{color:#8a7cf0; background:#8a7cf0}
+  .stat:nth-child(2)::after{color:#5d9ccf; background:#5d9ccf}
+  .stat:nth-child(3)::after{color:#d99a5c; background:#d99a5c}
+  .stat:nth-child(4)::after{color:#4aa891; background:#4aa891}
+  .stat .v{font-size:25px; font-weight:800; color:#fff; letter-spacing:-.5px; line-height:1.05}
+  .stat .v.blue{color:#fff}
+  .stat .l{font-size:10px; color:rgba(255,255,255,.58); text-transform:uppercase; letter-spacing:.8px; margin-top:5px; font-weight:600}
+  .list{display:flex; flex-direction:column; gap:8px}
+  .item{background:var(--card2); border-radius:13px; padding:13px 15px; display:flex; justify-content:space-between; align-items:center; gap:10px; border:1px solid var(--line); border-left:3px solid var(--acc); transition:background .15s}
+  @media(hover:hover){ .item[onclick]:hover{background:#efedf7} }
+  .item .main{font-weight:700}
+  .item .sub{font-size:12px; color:var(--muted); margin-top:2px}
+  .item .val{font-weight:800; color:var(--acc); white-space:nowrap; text-align:right}
+  .pill{display:inline-block; background:var(--card2); border:1.5px solid var(--line); border-radius:999px; padding:7px 15px; font-size:13px; margin:4px 6px 0 0; cursor:pointer; font-weight:600; transition:transform .12s, border-color .15s}
+  .pill:active{transform:scale(.94)}
+  .pill.active{background:var(--grad); color:#fff; border-color:transparent; font-weight:700; box-shadow:0 3px 12px rgba(108,92,231,.28)}
+  .muted{color:var(--muted); font-size:13px}
+  canvas{width:100%; display:block}
+  nav{
+    position:fixed; bottom:0; left:0; right:0; z-index:30;
+    background:rgba(255,255,255,.85); backdrop-filter:saturate(180%) blur(16px); -webkit-backdrop-filter:saturate(180%) blur(16px);
+    border-top:1px solid var(--line); box-shadow:0 -6px 24px rgba(20,18,40,.07);
+    display:flex; justify-content:space-around; padding:8px 4px 22px;
+  }
+  nav a{
+    position:relative; flex:1; text-align:center; color:var(--muted); text-decoration:none; font-size:11px;
+    display:flex; flex-direction:column; align-items:center; gap:3px; padding:4px; cursor:pointer; font-weight:600;
+  }
+  /* streck mellan flikarna */
+  nav a:not(:last-child)::after{
+    content:""; position:absolute; right:0; top:50%; transform:translateY(-50%);
+    width:1px; height:26px; background:linear-gradient(180deg,transparent,var(--line) 25%,var(--line) 75%,transparent);
+  }
+  nav a .ic{font-size:20px; line-height:1; padding:5px 16px; border-radius:999px; transition:background .2s, transform .2s}
+  nav a.active{color:var(--acc)}
+  nav a.active .ic{background:rgba(108,92,231,.12); transform:scale(1.05)}
+  /* centrera nav-flikarna på breda skärmar så de inte flyter isär */
+  @media (min-width:720px){
+    nav{justify-content:center; gap:6px; padding-bottom:16px}
+    nav a{flex:0 0 128px; max-width:128px}
+    nav a:not(:last-child)::after{height:30px}
+  }
+  .page{display:none}
+  .page.active{display:block}
+  .empty{text-align:center; color:var(--muted); padding:24px 10px; font-size:14px}
+  .x{color:var(--danger); cursor:pointer; font-size:18px; padding:0 4px; background:none; border:none; width:auto; margin:0; box-shadow:none}
+  .badge{font-size:10px; background:var(--acc); color:#fff; padding:2px 7px; border-radius:999px; font-weight:800; margin-left:6px}
+  .badge.pr{background:var(--warn)}
+  .toast{
+    position:fixed; bottom:100px; left:50%; transform:translateX(-50%); background:linear-gradient(135deg,#272240,#191627);
+    color:#fff; padding:13px 22px; border-radius:13px; font-weight:700; z-index:100; border:1px solid rgba(255,255,255,.08);
+    opacity:0; transition:opacity .3s, transform .3s; pointer-events:none; box-shadow:0 12px 30px rgba(20,18,40,.35);
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(-6px)}
+  .empty{text-align:center; color:var(--muted); padding:24px 14px; font-size:14px; background:var(--card2);
+    border-radius:12px; border:1.5px dashed var(--line)}
+  .fresh-badge{font-size:11px; font-weight:700; padding:5px 12px; border-radius:999px; background:var(--card2); color:var(--muted)}
+  .fresh-badge.ready{background:#e4f2ec; color:#3f8f77}
+  .fresh-badge.soon{background:#f7eede; color:#b0803e}
+  .fresh-badge.rest{background:#ecebfb; color:#6c5ce7}
+  .mini-badge{font-size:9px; font-weight:800; padding:2px 6px; border-radius:6px; vertical-align:middle; letter-spacing:.3px}
+  .mini-badge.ss{background:#ecebfb; color:#6c5ce7}
+  .mini-badge.ds{background:#f7e5ec; color:#c65b86}
+  #undobar{position:fixed; bottom:100px; left:50%; transform:translateX(-50%) translateY(12px); z-index:101;
+    background:linear-gradient(135deg,#272240,#191627); color:#fff; padding:11px 13px 11px 19px; border-radius:14px; display:flex; align-items:center; gap:14px; border:1px solid rgba(255,255,255,.08);
+    box-shadow:0 12px 30px rgba(20,18,40,.4); opacity:0; pointer-events:none; transition:opacity .25s, transform .25s; max-width:92vw}
+  #undobar.show{opacity:1; transform:translateX(-50%) translateY(-6px); pointer-events:auto}
+  #undobar .undo-msg{font-size:13px; font-weight:600}
+  #undobar .undo-btn{margin:0; width:auto; padding:8px 16px; background:var(--grad); color:#fff; border:none;
+    border-radius:9px; font-weight:800; font-size:13px; box-shadow:none; flex:0 0 auto}
+  .timer-big{font-size:46px; font-weight:900; text-align:center; font-variant-numeric:tabular-nums;
+    background:var(--grad); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent}
+  details summary{cursor:pointer; color:var(--muted); font-size:13px; padding:6px 0}
+  .tag{font-size:11px; color:var(--muted); border:1px solid var(--line); padding:2px 8px; border-radius:999px}
+  a.link{color:var(--acc2); cursor:pointer; text-decoration:underline}
+  .unit-btn.active{background:var(--grad); color:#fff; border-color:transparent}
+  .pickrow{display:flex; align-items:center; gap:11px; margin:6px 0; padding:10px 12px; border-radius:12px;
+    background:var(--card2); cursor:pointer; transition:background .15s, box-shadow .15s; font-weight:600; color:var(--txt); user-select:none}
+  .pickrow input{display:none}
+  .pickcheck{width:23px; height:23px; flex:0 0 23px; border-radius:7px; border:2px solid var(--line);
+    background:#fff; display:flex; align-items:center; justify-content:center; transition:all .18s}
+  .pickcheck::after{content:"✓"; color:#fff; font-size:14px; font-weight:900; opacity:0; transform:scale(.4); transition:all .18s}
+  .pickrow input:checked ~ .pickcheck{background:var(--acc); border-color:var(--acc); box-shadow:0 3px 8px rgba(108,92,231,.32)}
+  .pickrow input:checked ~ .pickcheck::after{opacity:1; transform:scale(1)}
+  .pickrow input:checked ~ .pickname{color:var(--acc); font-weight:700}
+  .pickrow:has(input:checked){background:#f0eefb; box-shadow:inset 0 0 0 1.5px #cdc5f5}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <span class="logo-badge">
+      <svg viewBox="0 0 48 48" aria-hidden="true">
+        <rect x="6.5" y="6" width="4.2" height="10" rx="1.6" fill="#fde68a"/>
+        <rect x="37.3" y="6" width="4.2" height="10" rx="1.6" fill="#fde68a"/>
+        <rect x="9" y="9.2" width="30" height="3.4" rx="1.7" fill="#fff"/>
+        <path d="M24 22 L17.5 12.4 M24 22 L30.5 12.4" stroke="#fff" stroke-width="2.8" stroke-linecap="round" fill="none"/>
+        <circle cx="24" cy="19.2" r="3.5" fill="#fff"/>
+        <path d="M24 22.2 L24 33" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/>
+        <path d="M24 33 L18.6 42 M24 33 L29.4 42" stroke="#fff" stroke-width="2.8" stroke-linecap="round" fill="none"/>
+      </svg>
+    </span>
+    <div>
+      <h1>GYM<span>TRACKR</span></h1>
+      <div class="tagline">Träna · Mät · Slå rekord</div>
+    </div>
+  </div>
+  <div id="streak" class="muted"></div>
+</header>
+
+<div class="wrap">
+
+  <!-- ============ HEM / DASHBOARD ============ -->
+  <section id="page-hem" class="page active">
+    <div class="card">
+      <h2>Översikt</h2>
+      <div class="grid2">
+        <div class="stat"><div class="v" id="s-weight">–</div><div class="l">Kroppsvikt</div></div>
+        <div class="stat"><div class="v blue" id="s-workouts">0</div><div class="l">Pass totalt</div></div>
+        <div class="stat"><div class="v" id="s-volume">0</div><div class="l">Volym (7 dgr) kg</div></div>
+        <div class="stat"><div class="v blue" id="s-sets">0</div><div class="l">Set (7 dgr)</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Denna vecka</h2>
+      <div class="grid2">
+        <div class="stat"><div class="v" id="wk-pass">0</div><div class="l">Pass</div></div>
+        <div class="stat"><div class="v blue" id="wk-sets">0</div><div class="l">Set</div></div>
+        <div class="stat"><div class="v" id="wk-vol">0</div><div class="l">Volym kg</div></div>
+        <div class="stat"><div class="v blue" id="wk-pr">0</div><div class="l">Nya PR</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Muskelåterhämtning</h2>
+      <p class="muted" style="margin-top:0">Dagar sedan du senast tränade varje muskelgrupp.</p>
+      <div id="freshness" class="list"></div>
+    </div>
+
+    <div class="card" id="card-stalled" style="display:none">
+      <h2>Fastnat? 🔍</h2>
+      <p class="muted" style="margin-top:0">Övningar utan nytt PR på länge – dags att variera.</p>
+      <div id="stalled" class="list"></div>
+    </div>
+
+    <div class="card">
+      <h2>Kroppsvikt över tid</h2>
+      <canvas id="weightChart" height="150"></canvas>
+      <div id="weightTrend" class="muted" style="margin-top:8px"></div>
+    </div>
+
+    <div class="card">
+      <h2>Snabblogga vikt</h2>
+      <div class="row">
+        <input type="number" id="quickWeight" placeholder="Vikt (kg)" step="0.1" inputmode="decimal">
+        <button style="margin-top:0; max-width:120px" onclick="logBodyWeight()">Spara</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Senaste pass</h2>
+      <div id="recentSets" class="list"></div>
+    </div>
+  </section>
+
+  <!-- ============ LOGGA SET ============ -->
+  <section id="page-logga" class="page">
+    <div class="card">
+      <h2>Pass-timer</h2>
+      <div class="timer-big" id="sessDisplay">0:00</div>
+      <div class="row" style="margin-top:6px">
+        <button class="sec" style="margin-top:0" id="sessBtn" onclick="sessStartStop()">▶ Starta</button>
+        <button class="ghost" style="margin-top:0; width:auto; flex:0 0 auto; padding:13px 18px" onclick="sessSave()">Spara</button>
+        <button class="ghost" style="margin-top:0; width:auto; flex:0 0 auto; padding:13px 18px" onclick="sessReset()">Nollställ</button>
+      </div>
+      <div id="sessToday" class="muted" style="margin-top:10px"></div>
+      <button class="sec" onclick="repeatLastWorkout()" style="margin-top:14px">🔁 Upprepa förra passet</button>
+    </div>
+
+    <div class="card" id="programCard">
+      <h2>Träningsprogram</h2>
+      <select id="activeRoutineSel" onchange="selectRoutine(this.value)"></select>
+      <div id="routineChips" style="margin-top:12px"></div>
+      <button class="sec" id="guidedBtn" onclick="toggleGuided()" style="margin-top:12px">▶ Starta guidat pass</button>
+      <div id="guidedPanel"></div>
+    </div>
+
+    <div class="card">
+      <h2>Logga set</h2>
+      <label>Övning</label>
+      <select id="logExercise"></select>
+      <div id="weightRepsSection">
+        <label id="logWeightLabel">Vikt (kg)</label>
+        <div class="stepper">
+          <button type="button" class="stp" onclick="bump('logWeight',-step())">−</button>
+          <input type="number" id="logWeight" step="0.5" inputmode="decimal" placeholder="0">
+          <button type="button" class="stp" onclick="bump('logWeight',step())">+</button>
+        </div>
+        <label>Reps</label>
+        <div class="stepper">
+          <button type="button" class="stp" onclick="bump('logReps',-1)">−</button>
+          <input type="number" id="logReps" inputmode="numeric" placeholder="0">
+          <button type="button" class="stp" onclick="bump('logReps',1)">+</button>
+        </div>
+        <div class="row">
+          <div>
+            <label>Set</label>
+            <input type="number" id="logSets" inputmode="numeric" value="1" min="1">
+          </div>
+          <div>
+            <label>RPE (valfritt)</label>
+            <select id="logRpe">
+              <option value="">–</option>
+              <option>6</option><option>6.5</option><option>7</option><option>7.5</option>
+              <option>8</option><option>8.5</option><option>9</option><option>9.5</option><option>10</option>
+            </select>
+          </div>
+        </div>
+        <label>Typ (valfritt)</label>
+        <select id="logTag">
+          <option value="">Vanligt set</option>
+          <option value="superset">Superset</option>
+          <option value="dropset">Dropset</option>
+        </select>
+      </div>
+      <div id="timeSection" style="display:none">
+        <label>Tid</label>
+        <div class="timer-big" id="plankDisplay" style="font-size:42px">0:00</div>
+        <div class="row" style="margin-top:6px">
+          <button class="sec" style="margin-top:0" id="plankStartBtn" onclick="plankStartStop()">▶ Starta</button>
+          <button class="ghost" style="margin-top:0; width:auto; flex:0 0 auto; padding:13px 18px" onclick="plankReset()">Nollställ</button>
+        </div>
+        <label style="margin-top:14px">Eller ange sekunder manuellt</label>
+        <div class="stepper">
+          <button type="button" class="stp" onclick="bump('logTime',-5);syncPlankDisplay()">−</button>
+          <input type="number" id="logTime" inputmode="numeric" placeholder="0" oninput="syncPlankDisplay()">
+          <button type="button" class="stp" onclick="bump('logTime',5);syncPlankDisplay()">+</button>
+        </div>
+      </div>
+      <label>Datum</label>
+      <input type="date" id="logDate">
+      <label>Anteckning (valfritt)</label>
+      <input type="text" id="logNote" placeholder="T.ex. kändes tungt, ny teknik...">
+      <button onclick="logSet()">Logga</button>
+      <div id="logHint" class="muted" style="margin-top:10px; text-align:center"></div>
+    </div>
+
+    <div class="card">
+      <h2>Vilotimer</h2>
+      <div class="timer-big" id="timerDisplay">0:00</div>
+      <div style="margin-top:6px">
+        <span class="pill" onclick="startTimer(60)">1 min</span>
+        <span class="pill" onclick="startTimer(90)">1:30</span>
+        <span class="pill" onclick="startTimer(120)">2 min</span>
+        <span class="pill" onclick="startTimer(180)">3 min</span>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <button class="sec" style="margin-top:0" onclick="stopTimer()">Stopp</button>
+      </div>
+      <label style="display:flex;align-items:center;gap:8px;margin-top:14px;cursor:pointer">
+        <input type="checkbox" id="autoRest" style="width:auto" onchange="toggleAutoRest(this.checked)">
+        <span>Starta vila automatiskt efter loggning</span>
+      </label>
+    </div>
+
+    <div class="card">
+      <h2>Skivstångskalkylator</h2>
+      <div class="row">
+        <div>
+          <label id="plateTargetLabel">Målvikt (kg)</label>
+          <input type="number" id="plateTarget" step="2.5" inputmode="decimal" placeholder="0" oninput="calcPlates()">
+        </div>
+        <div>
+          <label>Stångvikt</label>
+          <select id="plateBar" onchange="calcPlates()">
+            <option value="20">20 kg</option>
+            <option value="15">15 kg</option>
+            <option value="10">10 kg</option>
+            <option value="0">Ingen stång</option>
+          </select>
+        </div>
+      </div>
+      <div id="plateResult" class="muted" style="margin-top:12px"></div>
+    </div>
+
+    <div class="card">
+      <h2>Uppvärmningsset</h2>
+      <label id="warmupLabel">Arbetsvikt (kg)</label>
+      <input type="number" id="warmupWeight" step="2.5" inputmode="decimal" placeholder="0" oninput="calcWarmup()">
+      <div id="warmupResult" class="list" style="margin-top:12px"></div>
+    </div>
+
+    <div class="card">
+      <h2>Dagens anteckning</h2>
+      <textarea id="dayNote" rows="2" placeholder="Dagsform, sömn, energi..." oninput="saveDayNote(this.value)"></textarea>
+    </div>
+
+    <div class="card">
+      <h2>Dagens set</h2>
+      <div id="todaySets" class="list"></div>
+    </div>
+  </section>
+
+  <!-- ============ ÖVNINGAR / PR ============ -->
+  <section id="page-ovningar" class="page">
+    <div class="card">
+      <h2>Filtrera muskelgrupp</h2>
+      <input type="search" id="exSearch" placeholder="🔍 Sök övning..." oninput="setExSearch(this.value)" style="margin-bottom:12px">
+      <div id="groupFilter"></div>
+    </div>
+    <div class="card">
+      <h2>Lägg till övning</h2>
+      <input type="text" id="newExercise" placeholder="T.ex. Bänkpress">
+      <div class="row" style="margin-top:10px">
+        <select id="newExerciseGroup"></select>
+        <button style="margin-top:0; max-width:120px" onclick="addExercise()">Lägg till</button>
+      </div>
+      <div id="exerciseChips" style="margin-top:12px"></div>
+    </div>
+
+    <div class="card">
+      <h2>Träningsprogram</h2>
+      <input type="text" id="newRoutine" placeholder="Programnamn, t.ex. Push-pass">
+      <label>Välj övningar</label>
+      <div id="routinePicker" style="max-height:220px;overflow:auto;border:2px solid var(--line);border-radius:12px;padding:10px"></div>
+      <button onclick="addRoutine()">Spara program</button>
+      <div id="routineList" class="list" style="margin-top:14px"></div>
+    </div>
+
+    <div class="card">
+      <h2>Personbästa (PR)</h2>
+      <div id="prList" class="list"></div>
+    </div>
+  </section>
+
+  <!-- ============ STATISTIK ============ -->
+  <section id="page-statistik" class="page">
+    <div class="card">
+      <h2>Totalt</h2>
+      <div class="grid2">
+        <div class="stat"><div class="v" id="st-workouts">0</div><div class="l">Pass totalt</div></div>
+        <div class="stat"><div class="v blue" id="st-sets">0</div><div class="l">Set totalt</div></div>
+        <div class="stat"><div class="v" id="st-volume">0</div><div class="l">Total volym kg</div></div>
+        <div class="stat"><div class="v blue" id="st-fav">–</div><div class="l">Mest tränad</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Pass per vecka</h2>
+      <canvas id="weekChart" height="150"></canvas>
+    </div>
+    <div class="card">
+      <h2>Volym per muskelgrupp</h2>
+      <div id="volPerGroup"></div>
+    </div>
+    <div class="card">
+      <h2>Push / Pull-balans</h2>
+      <p class="muted" style="margin-top:0">Total volym fördelad på tryck, drag, ben och core.</p>
+      <div id="balance"></div>
+    </div>
+    <div class="card">
+      <h2>Veckovolym-mål</h2>
+      <p class="muted" style="margin-top:0">Antal set per muskelgrupp denna vecka. Sätt ett veckomål för att följa upp.</p>
+      <div id="volGoals"></div>
+    </div>
+    <div class="card">
+      <h2>Träningskalender</h2>
+      <p class="muted" style="margin-top:0">Senaste 12 veckorna – mörkare = fler set.</p>
+      <div id="heatmap" class="heat"></div>
+    </div>
+    <div class="card">
+      <h2>PR-historik</h2>
+      <div id="prHistory" class="list"></div>
+    </div>
+  </section>
+
+  <!-- ============ DETALJ (per övning) ============ -->
+  <section id="page-detalj" class="page">
+    <div class="card">
+      <h2 id="detailTitle">Övning</h2>
+      <div class="grid2">
+        <div class="stat"><div class="v" id="d-maxw">–</div><div class="l" id="d-l-maxw">Tyngsta lyft</div></div>
+        <div class="stat"><div class="v blue" id="d-1rm">–</div><div class="l" id="d-l-1rm">Est. 1RM</div></div>
+        <div class="stat"><div class="v" id="d-maxreps">–</div><div class="l" id="d-l-maxreps">Flest reps</div></div>
+        <div class="stat"><div class="v blue" id="d-sets">0</div><div class="l">Antal set</div></div>
+      </div>
+      <button class="sec" onclick="showPage('ovningar')" style="margin-top:14px">← Tillbaka</button>
+    </div>
+
+    <div class="card" id="card-weightChart">
+      <h2 id="h-weightChart">Tyngsta vikt över tid</h2>
+      <canvas id="exWeightChart" height="150"></canvas>
+    </div>
+
+    <div class="card" id="card-1rmChart">
+      <h2>Est. 1RM över tid</h2>
+      <canvas id="exChart" height="150"></canvas>
+    </div>
+
+    <div class="card" id="card-volChart">
+      <h2>Volym över tid (kg)</h2>
+      <canvas id="exVolChart" height="150"></canvas>
+    </div>
+
+    <div class="card" id="card-rmTable">
+      <h2>Beräknade maxvikter</h2>
+      <p class="muted" style="margin-top:0">Uppskattad vikt du klarar för olika rep-intervall, baserat på ditt bästa est. 1RM.</p>
+      <div id="rmTable" class="list"></div>
+    </div>
+
+    <div class="card" id="card-repsPerWeight">
+      <h2>Reps per vikt</h2>
+      <p class="muted" style="margin-top:0">Bästa antal reps du gjort på varje vikt.</p>
+      <div id="repsPerWeight" class="list"></div>
+    </div>
+
+    <div class="card">
+      <h2>Alla set</h2>
+      <div id="exHistory" class="list"></div>
+    </div>
+  </section>
+
+  <!-- ============ MER / DATA ============ -->
+  <section id="page-mer" class="page">
+    <div class="card">
+      <h2>Enhet</h2>
+      <div class="row">
+        <button class="sec unit-btn" data-unit="kg" onclick="setUnit('kg')" style="margin-top:0">Kilogram (kg)</button>
+        <button class="sec unit-btn" data-unit="lbs" onclick="setUnit('lbs')" style="margin-top:0">Pund (lbs)</button>
+      </div>
+      <p class="muted" style="margin-top:10px">All data lagras i kg och räknas om till vald enhet.</p>
+    </div>
+    <div class="card">
+      <h2>Kroppsmått (cm)</h2>
+      <div id="measureInputs" class="grid2"></div>
+      <label>Datum</label>
+      <input type="date" id="measureDate">
+      <button onclick="logMeasurement()">Spara mått</button>
+      <div id="measureLatest" class="list" style="margin-top:14px"></div>
+    </div>
+    <div class="card">
+      <h2>Progress-bilder</h2>
+      <p class="muted" style="margin-top:0">Ta en bild för att följa din utveckling. Bilderna sparas lokalt och komprimeras automatiskt.</p>
+      <input type="file" id="photoInput" accept="image/*" capture="environment" onchange="addPhoto(event)">
+      <div id="storageMeter" style="margin-top:14px"></div>
+      <div id="photoGrid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px"></div>
+    </div>
+    <div class="card">
+      <h2>Kroppsvikt-historik</h2>
+      <div id="weightHistory" class="list"></div>
+    </div>
+    <div class="card">
+      <h2>Data & backup</h2>
+      <p class="muted" style="margin-top:0">All data sparas lokalt i din webbläsare. Exportera regelbundet som backup.</p>
+      <div id="backupInfo" class="muted" style="margin-bottom:12px;font-weight:600"></div>
+      <button class="sec" onclick="exportData()">Exportera backup (.json)</button>
+      <label style="margin-top:14px">Importera backup</label>
+      <input type="file" id="importFile" accept="application/json" onchange="importData(event)">
+      <button class="danger" onclick="resetAll()" style="margin-top:20px">Radera all data</button>
+    </div>
+    <div class="card">
+      <h2>Mål (kroppsvikt)</h2>
+      <div class="row">
+        <input type="number" id="goalWeight" step="0.1" placeholder="Målvikt kg" inputmode="decimal">
+        <button style="margin-top:0; max-width:120px" onclick="saveGoal()">Spara</button>
+      </div>
+      <div id="goalStatus" class="muted" style="margin-top:10px"></div>
+    </div>
+  </section>
+
+</div>
+
+<nav>
+  <a data-page="hem" class="active" onclick="showPage('hem')"><span class="ic">🏠</span>Hem</a>
+  <a data-page="logga" onclick="showPage('logga')"><span class="ic">➕</span>Logga</a>
+  <a data-page="ovningar" onclick="showPage('ovningar')"><span class="ic">🏋️</span>Övningar</a>
+  <a data-page="statistik" onclick="showPage('statistik')"><span class="ic">📊</span>Statistik</a>
+  <a data-page="mer" onclick="showPage('mer')"><span class="ic">⚙️</span>Mer</a>
+</nav>
+
+<div id="toast" class="toast"></div>
+<div id="undobar"><span class="undo-msg"></span><button class="undo-btn">Ångra</button></div>
+
+<script>
+/* ================= DATA LAGER ================= */
+const KEY = 'gymtracker_v1';
+
+/* Muskelgrupper med färg */
+const GROUPS = {
+  'Bröst':  {color:'#cf6f6f'},
+  'Axlar':  {color:'#d99a5c'},
+  'Ben':    {color:'#8a7cf0'},
+  'Rygg':   {color:'#5d9ccf'},
+  'Mage':   {color:'#4aa891'},
+  'Biceps': {color:'#c974a0'},
+  'Triceps':{color:'#48a3b5'},
+  'Övrigt': {color:'#8b8698'}
+};
+
+/* kategorier för balans-analys (push/pull/ben/core) */
+const GROUP_CAT = {'Bröst':'Push','Axlar':'Push','Triceps':'Push','Rygg':'Pull','Biceps':'Pull','Ben':'Ben','Mage':'Core'};
+const CAT_META = {
+  Push:{label:'Push · tryck',color:'#cf6f6f'},
+  Pull:{label:'Pull · drag',color:'#5d9ccf'},
+  Ben:{label:'Ben',color:'#8a7cf0'},
+  Core:{label:'Core · mage',color:'#4aa891'},
+  'Övrigt':{label:'Övrigt',color:'#8b8698'}
+};
+function catOf(group){ return GROUP_CAT[group]||'Övrigt'; }
+
+/* Fördefinierad övningskatalog */
+const CATALOG = [
+  {name:'Bänkpress hantel', group:'Bröst'},
+  {name:'Sne bänk hantel', group:'Bröst'},
+  {name:'Sne bänk smith', group:'Bröst'},
+  {name:'Cable bröst', group:'Bröst'},
+  {name:'Bröst maskin squeeze', group:'Bröst'},
+  {name:'Armhävningar', group:'Bröst'},
+
+  {name:'Flyes', group:'Axlar'},
+  {name:'Cable flyes', group:'Axlar'},
+  {name:'Baksida axlar cable', group:'Axlar'},
+
+  {name:'Utfallssteg', group:'Ben'},
+  {name:'Hip thrust', group:'Ben'},
+  {name:'Framsida lår maskin', group:'Ben'},
+  {name:'Baksida lår maskin', group:'Ben'},
+  {name:'Vader med stång över', group:'Ben'},
+  {name:'Bulgarians', group:'Ben'},
+  {name:'RDLs', group:'Ben'},
+
+  {name:'Pullups med vikt', group:'Rygg'},
+  {name:'Rodd maskin', group:'Rygg'},
+  {name:'Bål med vikt', group:'Rygg'},
+  {name:'Rodd med hantel', group:'Rygg'},
+  {name:'Lats pulldown', group:'Rygg'},
+
+  {name:'Kablar mage', group:'Mage'},
+  {name:'Situps', group:'Mage'},
+  {name:'Hängande med raka ben', group:'Mage'},
+
+  {name:'Biceps curl hantel', group:'Biceps'},
+  {name:'Biceps curl en hand med stöd', group:'Biceps'},
+  {name:'Hammer curls', group:'Biceps'},
+
+  {name:'En hand cable pulldown', group:'Triceps'},
+  {name:'Två hand cable pulldown', group:'Triceps'},
+  {name:'Sne stång med vikt över huvud', group:'Triceps'},
+
+  {name:'Bänkpress', group:'Bröst'},
+  {name:'Bänkpress smith', group:'Bröst'},
+  {name:'Bröst flyes med hantlar', group:'Bröst'},
+
+  {name:'Chin ups', group:'Biceps'},
+  {name:'Barbell curl', group:'Biceps'},
+  {name:'Dumbbell sne bänk curl', group:'Biceps'},
+  {name:'Cable curl en hand', group:'Biceps'},
+  {name:'Cable curl två händer', group:'Biceps'},
+
+  {name:'Overhead cable två händer', group:'Triceps'},
+  {name:'Dips', group:'Triceps'},
+  {name:'Smalt grepp bänkpress', group:'Triceps'},
+  {name:'Svinga hantel en hand på bänk', group:'Triceps'},
+
+  {name:'Cable lat prayer', group:'Rygg'},
+  {name:'Maskin rodd', group:'Rygg'},
+  {name:'Kroppsvikt pull båda händer häl i golv', group:'Rygg'},
+  {name:'Marklyft', group:'Rygg'},
+
+  {name:'Axelpress med hantlar', group:'Axlar'},
+  {name:'Armhävningar med en pall', group:'Axlar'},
+  {name:'En hantel lyft till axelhöjd', group:'Axlar'},
+
+  {name:'Plankan', group:'Mage', type:'time'},
+  {name:'Sidoplankan', group:'Mage', type:'time'}
+];
+
+/* Kroppsdelar för mått (cm) */
+const BODYPARTS = ['Arm','Bröst','Midja','Höft','Lår','Vad'];
+
+let DB = load();
+let currentEx = null;
+
+function normalize(d){
+  d = d || {};
+  d.sets = d.sets || [];
+  d.weights = d.weights || [];
+  if(d.goal===undefined) d.goal = null;
+  d.settings = Object.assign({restTime:90, autoRest:true, unit:'kg', lastBackup:null}, d.settings||{});
+  d.measurements = d.measurements || [];   // {id, date, values:{del:cm}}
+  d.dayNotes = d.dayNotes || {};           // {date: text}
+  d.routines = d.routines || [];           // {id, name, exercises:[namn]}
+  d.volumeGoals = d.volumeGoals || {};     // {grupp: set/vecka}
+  d.photos = d.photos || [];               // {id, date, dataUrl}
+  d.sessions = d.sessions || {};           // {date: sekunder} – total pass-tid per dag
+  // migrera gamla string-övningar -> {name, group}
+  d.exercises = (d.exercises||[]).map(e => typeof e==='string' ? {name:e, group:'Övrigt'} : e);
+  // lägg till saknade katalog-övningar (bevarar användarens egna)
+  CATALOG.forEach(c=>{
+    const ex=d.exercises.find(e=>e.name.toLowerCase()===c.name.toLowerCase());
+    if(!ex) d.exercises.push({...c});
+    else if(c.type && !ex.type) ex.type=c.type; // patcha in tidsbaserad flagga
+  });
+  return d;
+}
+function load(){
+  let d;
+  try{ const raw=localStorage.getItem(KEY); d = raw?JSON.parse(raw):{}; }
+  catch(e){ d = {}; }
+  return normalize(d);
+}
+function groupOrder(){
+  const base=Object.keys(GROUPS).filter(g=>g!=='Övrigt');
+  const extra=[...new Set(DB.exercises.map(e=>e.group))].filter(g=>!Object.keys(GROUPS).includes(g));
+  return base.concat(extra).concat(['Övrigt']);
+}
+function exObj(name){ return DB.exercises.find(e=>e.name===name); }
+function groupOf(name){ const e=exObj(name); return e?e.group:'Övrigt'; }
+function groupColor(name){ return (GROUPS[groupOf(name)]||GROUPS['Övrigt']).color; }
+function save(){ localStorage.setItem(KEY, JSON.stringify(DB)); }
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+function today(){ return new Date().toISOString().slice(0,10); }
+
+/* ================= HJÄLP ================= */
+function epley1RM(w, r){ return r<=1 ? w : Math.round(w*(1+r/30)); }
+function fmt(n){ return (Math.round(n*10)/10).toString().replace('.0',''); }
+/* enhet: allt lagras i kg, visas i vald enhet */
+const LB=2.2046226218;
+function U(){ return DB.settings.unit||'kg'; }
+function K2U(kg){ return U()==='lbs' ? kg*LB : kg; }
+function U2K(v){ return U()==='lbs' ? v/LB : v; }
+function wNum(kg){ return fmt(K2U(kg)); }              // tal i vald enhet
+function W(kg){ return wNum(kg)+' '+U(); }              // tal + enhet
+function step(){ return U()==='lbs' ? 5 : 2.5; }       // viktsteg för +/-
+/* tidsbaserade övningar (t.ex. plankan) loggas med tid istället för vikt/reps */
+function isTime(name){ const e=exObj(name); return !!(e&&e.type==='time'); }
+function fmtTime(sec){ sec=Math.round(sec||0); const m=Math.floor(sec/60), s=sec%60; return m+':'+String(s).padStart(2,'0'); }
+function parseTimeInput(v){ v=(v||'').trim(); if(v.indexOf(':')>=0){ const p=v.split(':'); return (parseInt(p[0])||0)*60+(parseInt(p[1])||0); } return parseInt(v)||0; }
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),1800);
+}
+function dateSv(d){
+  const dt=new Date(d+'T00:00');
+  return dt.toLocaleDateString('sv-SE',{day:'numeric',month:'short'});
+}
+
+/* ================= NAVIGATION ================= */
+function showPage(p){
+  document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  document.querySelectorAll('nav a').forEach(a=>a.classList.toggle('active', a.dataset.page===p));
+  window.scrollTo(0,0);
+  if(p==='hem') renderHome();
+  if(p==='logga') renderLogga();
+  if(p==='ovningar'){ renderExercises(); renderRoutineBuilder(); renderRoutineList(); }
+  if(p==='statistik') renderStatistik();
+  if(p==='mer') renderMer();
+}
+
+/* ================= ÖVNINGAR ================= */
+function fillGroupSelect(){
+  const sel=document.getElementById('newExerciseGroup');
+  if(!sel) return;
+  sel.innerHTML=Object.keys(GROUPS).map(g=>`<option>${g}</option>`).join('');
+}
+function addExercise(){
+  const inp=document.getElementById('newExercise');
+  const grp=document.getElementById('newExerciseGroup').value||'Övrigt';
+  const name=inp.value.trim();
+  if(!name) return;
+  if(DB.exercises.some(e=>e.name.toLowerCase()===name.toLowerCase())){ toast('Finns redan'); return; }
+  DB.exercises.push({name, group:grp}); save(); inp.value='';
+  renderExercises(); fillExerciseSelect();
+  toast('Övning tillagd');
+}
+function removeExercise(name){
+  if(!confirm('Ta bort "'+name+'"? Loggade set påverkas inte.')) return;
+  const e=DB.exercises.find(x=>x.name===name);
+  DB.exercises = DB.exercises.filter(e=>e.name!==name);
+  save(); renderExercises(); fillExerciseSelect();
+  if(e) showUndo('Övning borttagen', ()=>{ DB.exercises.push(e); save(); renderExercises(); fillExerciseSelect(); });
+}
+function fillExerciseSelect(){
+  const sel=document.getElementById('logExercise');
+  const cur=sel.value;
+  let html='';
+  groupOrder().forEach(g=>{
+    const items=DB.exercises.filter(e=>e.group===g);
+    if(!items.length) return;
+    html+=`<optgroup label="${g}">`+items.map(e=>`<option>${e.name}</option>`).join('')+`</optgroup>`;
+  });
+  sel.innerHTML=html;
+  if([...sel.options].some(o=>o.value===cur)) sel.value=cur;
+}
+let activeFilter='Alla';
+let exSearch='';
+function setFilter(g){ activeFilter=g; renderExercises(); }
+function setExSearch(v){ exSearch=(v||'').trim().toLowerCase(); renderExercises(); }
+function exMatch(e){ return !exSearch || e.name.toLowerCase().includes(exSearch); }
+function renderExercises(){
+  // filter-pills
+  const groupsPresent=groupOrder().filter(g=>DB.exercises.some(e=>e.group===g));
+  if(activeFilter!=='Alla' && !groupsPresent.includes(activeFilter)) activeFilter='Alla';
+  let fhtml=`<span class="pill ${activeFilter==='Alla'?'active':''}" onclick="setFilter('Alla')">Alla</span>`;
+  groupsPresent.forEach(g=>{
+    const col=(GROUPS[g]||GROUPS['Övrigt']).color;
+    const on=activeFilter===g;
+    const st=on?`background:${col};color:#fff;border-color:${col}`:`border-color:${col};color:${col}`;
+    fhtml+=`<span class="pill" style="${st}" onclick="setFilter('${g}')">${g}</span>`;
+  });
+  const filterEl=document.getElementById('groupFilter');
+  if(filterEl) filterEl.innerHTML=fhtml;
+  const showGroups = activeFilter==='Alla' ? groupOrder() : [activeFilter];
+
+  const chips=document.getElementById('exerciseChips');
+  let html='';
+  showGroups.forEach(g=>{
+    const items=DB.exercises.filter(e=>e.group===g && exMatch(e));
+    if(!items.length) return;
+    const col=(GROUPS[g]||GROUPS['Övrigt']).color;
+    html+=`<div style="display:flex;align-items:center;gap:7px;margin-top:16px;margin-bottom:4px;font-weight:800;font-size:13px;color:${col};text-transform:uppercase;letter-spacing:.6px">
+      <span style="width:11px;height:11px;border-radius:50%;background:${col};display:inline-block"></span>${g}</div>`;
+    html+=items.map(e=>{
+      const n=e.name.replace(/'/g,"\\'");
+      return `<span class="pill" style="border-color:${col};color:${col}" onclick="openDetail('${n}')">${e.name}<span class="x" style="color:${col};font-size:15px;margin-left:7px;padding:0" onclick="event.stopPropagation();removeExercise('${n}')">×</span></span>`;
+    }).join('');
+  });
+  chips.innerHTML=html||(exSearch?'<div class="empty">Ingen övning matchar "'+exSearch+'".</div>':'<span class="muted">Inga övningar än.</span>');
+
+  // PR-lista (grupperad efter muskelgrupp)
+  const prEl=document.getElementById('prList');
+  let prHtml='';
+  showGroups.forEach(g=>{
+    const col=(GROUPS[g]||GROUPS['Övrigt']).color;
+    const prs=DB.exercises.filter(e=>e.group===g && exMatch(e)).map(o=>{
+      const ex=o.name;
+      const sets=DB.sets.filter(s=>s.ex===ex);
+      if(!sets.length) return null;
+      if(isTime(ex)){
+        let bestTime=0, bestSet=null;
+        sets.forEach(s=>{ if((s.time||0)>bestTime){bestTime=s.time;bestSet=s;} });
+        return {ex, isTime:true, bestTime, bestSet, sortVal:bestTime};
+      }
+      let best1rm=0, bestSet=null;
+      sets.forEach(s=>{ if(s.time!=null) return; const e=epley1RM(s.weight,s.reps); if(e>best1rm){best1rm=e;bestSet=s;} });
+      if(!bestSet) return null;
+      return {ex, best1rm, bestSet, sortVal:best1rm};
+    }).filter(Boolean).sort((a,b)=>b.sortVal-a.sortVal);
+    if(!prs.length) return;
+    prHtml+=`<div style="display:flex;align-items:center;gap:7px;margin-top:14px;margin-bottom:4px;font-weight:800;font-size:12px;color:${col};text-transform:uppercase;letter-spacing:.6px">
+      <span style="width:10px;height:10px;border-radius:50%;background:${col};display:inline-block"></span>${g}</div>`;
+    prHtml+=prs.map(p=> p.isTime ? `
+      <div class="item" onclick="openDetail('${p.ex.replace(/'/g,"\\'")}')" style="cursor:pointer;border-left-color:${col}">
+        <div>
+          <div class="main">${p.ex}</div>
+          <div class="sub">Längsta tid</div>
+        </div>
+        <div class="val" style="color:${col}">${fmtTime(p.bestTime)}<div class="sub" style="text-align:right">rekord</div></div>
+      </div>` : `
+      <div class="item" onclick="openDetail('${p.ex.replace(/'/g,"\\'")}')" style="cursor:pointer;border-left-color:${col}">
+        <div>
+          <div class="main">${p.ex}</div>
+          <div class="sub">Bästa set: ${W(p.bestSet.weight)} × ${p.bestSet.reps}</div>
+        </div>
+        <div class="val" style="color:${col}">${W(p.best1rm)}<div class="sub" style="text-align:right">est. 1RM</div></div>
+      </div>`).join('');
+  });
+  prEl.innerHTML = prHtml || '<div class="empty">Logga set för att se personbästa.</div>';
+}
+
+/* ================= TRÄNINGSPROGRAM ================= */
+let activeRoutineId=null;
+function renderRoutineBuilder(){
+  const el=document.getElementById('routinePicker');
+  let html='';
+  groupOrder().forEach(g=>{
+    const items=DB.exercises.filter(e=>e.group===g);
+    if(!items.length) return;
+    const col=(GROUPS[g]||GROUPS['Övrigt']).color;
+    html+=`<div style="font-weight:800;font-size:11px;color:${col};margin:12px 0 6px;text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;gap:6px"><span style="width:9px;height:9px;border-radius:50%;background:${col}"></span>${g}</div>`;
+    html+=items.map(e=>`<label class="pickrow">
+      <input type="checkbox" value="${e.name.replace(/"/g,'&quot;')}" class="rt-pick">
+      <span class="pickcheck"></span>
+      <span class="pickname">${e.name}</span></label>`).join('');
+  });
+  el.innerHTML=html;
+}
+function addRoutine(){
+  const name=document.getElementById('newRoutine').value.trim();
+  if(!name){ toast('Ange programnamn'); return; }
+  const picked=[...document.querySelectorAll('.rt-pick:checked')].map(c=>c.value);
+  if(!picked.length){ toast('Välj minst en övning'); return; }
+  DB.routines.push({id:uid(), name, exercises:picked}); save();
+  document.getElementById('newRoutine').value='';
+  document.querySelectorAll('.rt-pick').forEach(c=>c.checked=false);
+  toast('Program sparat ✓'); renderRoutineList();
+}
+function deleteRoutine(id){
+  if(!confirm('Ta bort programmet?')) return;
+  const r=DB.routines.find(x=>x.id===id);
+  DB.routines=DB.routines.filter(r=>r.id!==id); save();
+  if(activeRoutineId===id) activeRoutineId=null;
+  renderRoutineList();
+  if(r) showUndo('Program borttaget', ()=>{ DB.routines.push(r); save(); renderRoutineList(); });
+}
+function renderRoutineList(){
+  const el=document.getElementById('routineList');
+  el.innerHTML=DB.routines.length? DB.routines.map(r=>`
+    <div class="item">
+      <div>
+        <div class="main">${r.name}</div>
+        <div class="sub">${r.exercises.length} övningar: ${r.exercises.join(', ')}</div>
+      </div>
+      <button class="x" onclick="deleteRoutine('${r.id}')">×</button>
+    </div>`).join('') : '<div class="empty">Inga program än. Skapa ett ovan.</div>';
+}
+function fillRoutineSelect(){
+  const sel=document.getElementById('activeRoutineSel');
+  if(!sel) return;
+  sel.innerHTML='<option value="">— Inget program —</option>'+DB.routines.map(r=>`<option value="${r.id}">${r.name}</option>`).join('');
+  sel.value=activeRoutineId||'';
+}
+function selectRoutine(id){ activeRoutineId=id||null; renderProgramChips(); }
+function renderProgramChips(){
+  const el=document.getElementById('routineChips');
+  if(!el) return;
+  const r=DB.routines.find(x=>x.id===activeRoutineId);
+  if(!r){ el.innerHTML='<span class="muted">Välj ett program för att snabbt hoppa mellan dagens övningar.</span>'; return; }
+  const t=today();
+  el.innerHTML=r.exercises.map(name=>{
+    const done=DB.sets.some(s=>s.ex===name && s.date===t);
+    const col=groupColor(name);
+    const n=name.replace(/'/g,"\\'");
+    const st=done?`background:${col};color:#fff;border-color:${col}`:`border-color:${col};color:${col}`;
+    return `<span class="pill" style="${st}" onclick="pickRoutineEx('${n}')">${done?'✓ ':''}${name}</span>`;
+  }).join('');
+}
+function pickRoutineEx(name){
+  document.getElementById('logExercise').value=name;
+  onExerciseChange();
+  document.getElementById('logWeight').focus();
+}
+
+/* ================= GUIDAT PASS ================= */
+let guided=false, guidedIx=0;
+function toggleGuided(){
+  const r=DB.routines.find(x=>x.id===activeRoutineId);
+  if(!r){ toast('Välj ett program först'); return; }
+  guided=!guided; guidedIx=0;
+  document.getElementById('guidedBtn').textContent=guided?'✕ Avsluta pass':'▶ Starta guidat pass';
+  if(guided) gotoGuidedEx(); else renderGuided();
+}
+function gotoGuidedEx(){
+  const r=DB.routines.find(x=>x.id===activeRoutineId); if(!r) return;
+  const name=r.exercises[guidedIx];
+  const sel=document.getElementById('logExercise');
+  if([...sel.options].some(o=>o.value===name)){ sel.value=name; onExerciseChange(); }
+  renderGuided();
+}
+function guidedNext(){
+  const r=DB.routines.find(x=>x.id===activeRoutineId); if(!r) return;
+  if(guidedIx<r.exercises.length-1){ guidedIx++; gotoGuidedEx(); }
+  else { toast('Pass klart! 💪'); guided=false; document.getElementById('guidedBtn').textContent='▶ Starta guidat pass'; renderGuided(); }
+}
+function guidedPrev(){ if(guidedIx>0){ guidedIx--; gotoGuidedEx(); } }
+function renderGuided(){
+  const el=document.getElementById('guidedPanel'); if(!el) return;
+  const r=DB.routines.find(x=>x.id===activeRoutineId);
+  if(!guided||!r){ el.innerHTML=''; return; }
+  const name=r.exercises[guidedIx];
+  const col=groupColor(name);
+  const t=today();
+  const done=DB.sets.filter(s=>s.ex===name&&s.date===t).length;
+  el.innerHTML=`<div style="margin-top:14px;padding:14px;border:2px solid ${col};border-radius:14px;background:var(--card2)">
+    <div class="sub">Övning ${guidedIx+1} / ${r.exercises.length}</div>
+    <div style="font-size:20px;font-weight:800;color:${col};margin:2px 0">${name}</div>
+    <div class="sub">${done} set loggade idag</div>
+    <div class="row" style="margin-top:10px">
+      <button class="sec" style="margin-top:0" onclick="guidedPrev()">← Föregående</button>
+      <button style="margin-top:0" onclick="guidedNext()">${guidedIx<r.exercises.length-1?'Nästa →':'Avsluta ✓'}</button>
+    </div>
+  </div>`;
+}
+
+/* ================= ENHET (kg/lbs) ================= */
+function setUnit(u){
+  DB.settings.unit=u; save();
+  applyUnitLabels();
+  const p=document.querySelector('.page.active').id.replace('page-','');
+  if(p==='hem') renderHome();
+  else if(p==='logga') renderLogga();
+  else if(p==='ovningar') renderExercises();
+  else if(p==='statistik') renderStatistik();
+  else if(p==='mer') renderMer();
+  if(currentEx&&document.getElementById('page-detalj').classList.contains('active')) openDetail(currentEx);
+  updateLogHint();
+  toast('Enhet: '+u);
+}
+function applyUnitLabels(){
+  const u=U();
+  const set=(id,txt)=>{ const e=document.getElementById(id); if(e) e.textContent=txt; };
+  set('logWeightLabel','Vikt ('+u+')');
+  set('plateTargetLabel','Målvikt ('+u+')');
+  set('warmupLabel','Arbetsvikt ('+u+')');
+  const qw=document.getElementById('quickWeight'); if(qw) qw.placeholder='Vikt ('+u+')';
+  const gw=document.getElementById('goalWeight'); if(gw) gw.placeholder='Målvikt '+u;
+  document.querySelectorAll('.unit-btn').forEach(b=>{
+    const on=b.dataset.unit===u;
+    b.classList.toggle('active',on);
+  });
+}
+
+/* ================= VECKOVOLYM-MÅL ================= */
+function weekStart(){
+  const now=new Date(); now.setHours(0,0,0,0);
+  const dow=(now.getDay()+6)%7; const m=new Date(now); m.setDate(now.getDate()-dow);
+  return m.toISOString().slice(0,10);
+}
+function setVolGoal(g,v){
+  const n=parseInt(v);
+  if(isNaN(n)||n<=0) delete DB.volumeGoals[g]; else DB.volumeGoals[g]=n;
+  save(); renderVolGoals();
+}
+function renderVolGoals(){
+  const el=document.getElementById('volGoals'); if(!el) return;
+  const ms=weekStart();
+  const setsWeek=DB.sets.filter(s=>s.date>=ms);
+  const groups=groupOrder().filter(g=>g!=='Övrigt');
+  el.innerHTML=groups.map(g=>{
+    const cnt=setsWeek.filter(s=>groupOf(s.ex)===g).length;
+    const goal=DB.volumeGoals[g]||0;
+    const col=(GROUPS[g]||GROUPS['Övrigt']).color;
+    const pct=goal?Math.min(100,Math.round(cnt/goal*100)):0;
+    const met=goal&&cnt>=goal;
+    return `<div style="margin:14px 0">
+      <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:700;margin-bottom:5px">
+        <span style="color:${col}">${g} ${met?'✓':''}</span>
+        <span class="muted">${cnt}${goal?' / '+goal:''} set</span></div>
+      <div style="background:var(--card2);border-radius:999px;height:10px;overflow:hidden">
+        <div style="width:${pct}%;height:100%;background:${col};border-radius:999px"></div></div>
+      <input type="number" inputmode="numeric" placeholder="mål set/vecka" value="${goal||''}" onchange="setVolGoal('${g}',this.value)" style="margin-top:6px;padding:7px 10px;font-size:13px">
+    </div>`;
+  }).join('');
+}
+
+/* ================= TRÄNINGSKALENDER (heatmap) ================= */
+function renderHeatmap(){
+  const el=document.getElementById('heatmap'); if(!el) return;
+  const cnt={}; DB.sets.forEach(s=>cnt[s.date]=(cnt[s.date]||0)+1);
+  const now=new Date(); now.setHours(0,0,0,0);
+  const dow=(now.getDay()+6)%7;
+  const start=new Date(now); start.setDate(now.getDate()-dow-11*7);
+  let html='';
+  for(let i=0;i<12*7;i++){
+    const d=new Date(start); d.setDate(start.getDate()+i);
+    const ds=d.toISOString().slice(0,10);
+    const c=cnt[ds]||0;
+    if(d>now){ html+='<div class="d" style="visibility:hidden"></div>'; continue; }
+    let st='';
+    if(c>0){ const a=Math.min(1,0.3+c*0.18); st=`background:rgba(108,92,231,${a})`; }
+    html+=`<div class="d" title="${ds}: ${c} set" style="${st}"></div>`;
+  }
+  el.innerHTML=html;
+}
+
+/* ================= PR-HISTORIK ================= */
+function renderPRHistory(){
+  const el=document.getElementById('prHistory'); if(!el) return;
+  const sorted=[...DB.sets].sort((a,b)=>a.date.localeCompare(b.date)||a.id.localeCompare(b.id));
+  const best={}, events=[];
+  sorted.forEach(s=>{ if(s.time!=null) return; const e=epley1RM(s.weight,s.reps); if(e>(best[s.ex]||0)){ best[s.ex]=e; events.push({ex:s.ex,e,s}); } });
+  events.reverse();
+  el.innerHTML=events.length? events.slice(0,30).map(ev=>{
+    const col=groupColor(ev.ex);
+    return `<div class="item" style="border-left-color:${col}">
+      <div><div class="main">${ev.ex}</div><div class="sub">${dateSv(ev.s.date)} · ${W(ev.s.weight)} × ${ev.s.reps}</div></div>
+      <div class="val" style="color:${col}">${W(ev.e)}<div class="sub" style="text-align:right">1RM</div></div>
+    </div>`;
+  }).join('') : '<div class="empty">Inga PR än – logga set för att bygga historik.</div>';
+}
+
+/* ================= PROGRESS-BILDER ================= */
+function addPhoto(e){
+  const file=e.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=()=>{
+    const img=new Image();
+    img.onload=()=>{
+      const maxDim=800;
+      let {width:w,height:h}=img;
+      if(w>h && w>maxDim){ h=h*maxDim/w; w=maxDim; }
+      else if(h>maxDim){ w=w*maxDim/h; h=maxDim; }
+      const cv=document.createElement('canvas'); cv.width=w; cv.height=h;
+      cv.getContext('2d').drawImage(img,0,0,w,h);
+      const dataUrl=cv.toDataURL('image/jpeg',0.7);
+      DB.photos.push({id:uid(), date:today(), dataUrl});
+      const raw=localStorage.getItem(KEY);
+      try{ save(); toast('Bild sparad ✓'); renderPhotos(); }
+      catch(err){
+        DB.photos.pop();
+        if(raw!=null) localStorage.setItem(KEY,raw);
+        toast('Lagringen är full – exportera & radera gamla bilder');
+      }
+    };
+    img.src=reader.result;
+  };
+  reader.readAsDataURL(file);
+  e.target.value='';
+}
+function delPhoto(id){
+  if(!confirm('Ta bort bilden?')) return;
+  const p=DB.photos.find(x=>x.id===id); if(!p) return;
+  DB.photos=DB.photos.filter(p=>p.id!==id); save(); renderPhotos();
+  showUndo('Bild borttagen', ()=>{ DB.photos.push(p); save(); renderPhotos(); });
+}
+function renderPhotos(){
+  const el=document.getElementById('photoGrid'); if(!el) return;
+  const ps=[...DB.photos].sort((a,b)=>b.date.localeCompare(a.date));
+  el.innerHTML=ps.length? ps.map(p=>`
+    <div style="position:relative">
+      <img src="${p.dataUrl}" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;border:2px solid var(--line)">
+      <span style="position:absolute;left:4px;bottom:4px;background:rgba(0,0,0,.6);color:#fff;font-size:10px;padding:1px 6px;border-radius:6px">${dateSv(p.date)}</span>
+      <button class="x" onclick="delPhoto('${p.id}')" style="position:absolute;top:2px;right:2px;background:rgba(0,0,0,.55);color:#fff;border-radius:8px">×</button>
+    </div>`).join('') : '<span class="muted" style="grid-column:1/-1">Inga bilder än.</span>';
+  renderStorageMeter();
+}
+
+/* ================= BACKUP-PÅMINNELSE ================= */
+function daysSince(d){ if(!d) return Infinity; return Math.floor((new Date(today())-new Date(d))/864e5); }
+function backupBanner(){
+  const el=document.getElementById('backupInfo'); if(!el) return;
+  const ds=daysSince(DB.settings.lastBackup);
+  if(!DB.sets.length && !DB.weights.length){ el.innerHTML=''; return; }
+  if(DB.settings.lastBackup==null) el.innerHTML='⚠️ Du har aldrig exporterat en backup. Gör det för att inte förlora din data.';
+  else if(ds>=14) el.innerHTML=`⚠️ Senaste backup: ${dateSv(DB.settings.lastBackup)} (${ds} dgr sedan). Dags att exportera igen.`;
+  else el.innerHTML=`✓ Senaste backup: ${dateSv(DB.settings.lastBackup)} (${ds} dgr sedan).`;
+}
+
+/* ================= STATISTIK ================= */
+function renderStatistik(){
+  const days=new Set(DB.sets.map(s=>s.date));
+  document.getElementById('st-workouts').textContent=days.size;
+  document.getElementById('st-sets').textContent=DB.sets.length;
+  const totVol=DB.sets.reduce((a,s)=>a+(s.time!=null?0:s.weight*s.reps),0);
+  document.getElementById('st-volume').textContent=Math.round(totVol).toLocaleString('sv-SE');
+  const cnt={}; DB.sets.forEach(s=>cnt[s.ex]=(cnt[s.ex]||0)+1);
+  const fav=Object.entries(cnt).sort((a,b)=>b[1]-a[1])[0];
+  const favEl=document.getElementById('st-fav');
+  favEl.textContent=fav?fav[0]:'–';
+  favEl.style.fontSize=fav&&fav[0].length>9?'14px':'';
+
+  // pass per vecka (senaste 8 veckor, mån–sön)
+  const now=new Date(); now.setHours(0,0,0,0);
+  const dow=(now.getDay()+6)%7; const monday=new Date(now); monday.setDate(now.getDate()-dow);
+  const weeks=[], labels=[];
+  for(let i=7;i>=0;i--){
+    const start=new Date(monday); start.setDate(monday.getDate()-i*7);
+    const end=new Date(start); end.setDate(start.getDate()+7);
+    const s=start.toISOString().slice(0,10), e=end.toISOString().slice(0,10);
+    weeks.push(new Set(DB.sets.filter(x=>x.date>=s && x.date<e).map(x=>x.date)).size);
+    labels.push(dateSv(s));
+  }
+  drawBarChart('weekChart', labels, weeks, '#6c5ce7');
+
+  // volym per muskelgrupp
+  const gvol={}; DB.sets.forEach(s=>{ if(s.time!=null) return; const g=groupOf(s.ex); gvol[g]=(gvol[g]||0)+s.weight*s.reps; });
+  const entries=Object.entries(gvol).sort((a,b)=>b[1]-a[1]);
+  const max=Math.max(1,...entries.map(e=>e[1]));
+  const el=document.getElementById('volPerGroup');
+  el.innerHTML=entries.length? entries.map(([g,v])=>{
+    const col=(GROUPS[g]||GROUPS['Övrigt']).color;
+    const pct=Math.round(v/max*100);
+    return `<div style="margin:12px 0">
+      <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:700;margin-bottom:5px">
+        <span style="color:${col}">${g}</span><span class="muted">${Math.round(v).toLocaleString('sv-SE')} kg</span></div>
+      <div style="background:var(--card2);border-radius:999px;height:11px;overflow:hidden">
+        <div style="width:${pct}%;height:100%;background:${col};border-radius:999px"></div></div>
+    </div>`;
+  }).join('') : '<div class="empty">Logga set för att se statistik.</div>';
+
+  renderBalance(); renderVolGoals(); renderHeatmap(); renderPRHistory();
+}
+
+/* ================= LOGGA SET ================= */
+/* uppräknande tidtagarur för tidsbaserade övningar */
+let plankInt=null, plankBase=0, plankT0=0;
+function plankCurrent(){ return plankBase + Math.round((Date.now()-plankT0)/1000); }
+function plankStartStop(){
+  const btn=document.getElementById('plankStartBtn');
+  if(plankInt){
+    clearInterval(plankInt); plankInt=null;
+    document.getElementById('logTime').value=plankCurrent();
+    btn.textContent='▶ Fortsätt';
+  } else {
+    plankBase=parseInt(document.getElementById('logTime').value)||0;
+    plankT0=Date.now();
+    btn.textContent='⏸ Stoppa';
+    plankInt=setInterval(()=>{ document.getElementById('plankDisplay').textContent=fmtTime(plankCurrent()); },200);
+  }
+}
+function plankReset(){
+  if(plankInt){ clearInterval(plankInt); plankInt=null; }
+  plankBase=0;
+  document.getElementById('logTime').value='';
+  document.getElementById('plankDisplay').textContent='0:00';
+  document.getElementById('plankStartBtn').textContent='▶ Starta';
+}
+function syncPlankDisplay(){
+  if(plankInt) return;
+  document.getElementById('plankDisplay').textContent=fmtTime(parseInt(document.getElementById('logTime').value)||0);
+}
+
+function logSet(){
+  const ex=document.getElementById('logExercise').value;
+  if(!ex){ toast('Välj övning'); return; }
+  const nSets=Math.max(1, parseInt(document.getElementById('logSets').value)||1);
+  const date=document.getElementById('logDate').value||today();
+  const note=document.getElementById('logNote').value.trim();
+
+  // tidsbaserad övning (t.ex. plankan): logga tid istället för vikt/reps
+  if(isTime(ex)){
+    if(plankInt) plankStartStop(); // stoppa uret och fånga tiden
+    const time=parseInt(document.getElementById('logTime').value)||0;
+    if(time<=0){ toast('Ange en tid'); return; }
+    for(let i=0;i<nSets;i++) DB.sets.push({id:uid(),ex,date,note,time});
+    save();
+    plankReset();
+    document.getElementById('logNote').value='';
+    document.getElementById('logSets').value='1';
+    toast(nSets>1 ? nSets+' set loggade ✓' : 'Tid loggad ✓ ('+fmtTime(time)+')');
+    if(DB.settings.autoRest) startTimer(DB.settings.restTime);
+    renderLogga(); updateLogHint(); renderProgramChips();
+    return;
+  }
+
+  const weight=U2K(parseFloat(document.getElementById('logWeight').value));
+  const reps=parseInt(document.getElementById('logReps').value);
+  const rpeV=document.getElementById('logRpe').value;
+  const rpe=rpeV?parseFloat(rpeV):null;
+  const tag=document.getElementById('logTag').value||'';
+  if(isNaN(weight)||isNaN(reps)||reps<=0){ toast('Fyll i vikt & reps'); return; }
+
+  // Kolla om nytt PR (est 1RM)
+  const prevBest=Math.max(0,...DB.sets.filter(s=>s.ex===ex).map(s=>epley1RM(s.weight,s.reps)));
+  const new1rm=epley1RM(weight,reps);
+
+  for(let i=0;i<nSets;i++) DB.sets.push({id:uid(),ex,weight,reps,date,note,rpe,tag});
+  save();
+  document.getElementById('logWeight').value='';
+  document.getElementById('logReps').value='';
+  document.getElementById('logNote').value='';
+  document.getElementById('logSets').value='1';
+  document.getElementById('logRpe').value='';
+  document.getElementById('logTag').value='';
+
+  if(new1rm>prevBest && prevBest>0) toast('🏆 Nytt PR! '+W(new1rm)+' (1RM)');
+  else toast(nSets>1 ? nSets+' set loggade ✓' : 'Set loggat ✓');
+
+  if(DB.settings.autoRest) startTimer(DB.settings.restTime);
+  renderLogga(); updateLogHint(); renderProgramChips();
+}
+
+/* +/- stepper för vikt/reps */
+function bump(id,delta){
+  const el=document.getElementById(id);
+  let v=parseFloat(el.value)||0;
+  v=Math.round((v+delta)*100)/100;
+  if(v<0) v=0;
+  el.value=(id==='logReps'||id==='logSets')?Math.round(v):v;
+}
+
+/* redigera ett loggat set */
+function editSet(id){
+  const s=DB.sets.find(x=>x.id===id); if(!s) return;
+  if(s.time!=null){
+    const v=prompt('Tid (sekunder eller m:ss):', fmtTime(s.time));
+    if(v===null) return;
+    const t=parseTimeInput(v); if(t>0) s.time=t;
+    save(); renderLogga(); renderHome();
+    if(currentEx) openDetail(currentEx);
+    toast('Set uppdaterat ✓'); return;
+  }
+  const w=prompt('Vikt ('+U()+'):', wNum(s.weight));
+  if(w===null) return;
+  const r=prompt('Reps:', s.reps);
+  if(r===null) return;
+  const nw=U2K(parseFloat(w)), nr=parseInt(r);
+  if(!isNaN(nw)&&nw>0) s.weight=nw;
+  if(!isNaN(nr)&&nr>0) s.reps=nr;
+  save(); renderLogga(); renderHome();
+  if(currentEx) openDetail(currentEx);
+  toast('Set uppdaterat ✓');
+}
+
+/* Skivstångskalkylator (fysiska kg-skivor) */
+function calcPlates(){
+  const el=document.getElementById('plateResult');
+  const target=U2K(parseFloat(document.getElementById('plateTarget').value));
+  const bar=parseFloat(document.getElementById('plateBar').value)||0;
+  if(isNaN(target)){ el.innerHTML=''; return; }
+  if(target<bar){ el.innerHTML='Målvikten är mindre än stången.'; return; }
+  let rem=(target-bar)/2;
+  const plates=[25,20,15,10,5,2.5,1.25];
+  const counts={};
+  plates.forEach(p=>{ while(rem>=p-1e-9){ counts[p]=(counts[p]||0)+1; rem=Math.round((rem-p)*1000)/1000; } });
+  const keys=Object.keys(counts).sort((a,b)=>b-a);
+  if(!keys.length){ el.innerHTML='Bara stången ('+fmt(bar)+' kg).'; return; }
+  const list=keys.map(p=>`<b>${counts[p]}×</b> ${fmt(p)} kg`).join('  +  ');
+  let html=`Per sida: ${list}`;
+  if(rem>0.01) html+=`<br><span class="sub">Kan ej matcha exakt – ${fmt(rem)} kg kvar per sida.</span>`;
+  el.innerHTML=html;
+}
+
+/* Uppvärmningsset baserat på arbetsvikt */
+function calcWarmup(){
+  const el=document.getElementById('warmupResult');
+  const work=U2K(parseFloat(document.getElementById('warmupWeight').value));
+  if(isNaN(work)||work<=0){ el.innerHTML=''; return; }
+  const scheme=[[0.4,12],[0.55,8],[0.7,5],[0.85,3]];
+  el.innerHTML=scheme.map(([pct,reps])=>{
+    const w=Math.round(work*pct/2.5)*2.5;
+    return `<div class="item"><div class="main">${W(w)} × ${reps}</div><div class="val">${Math.round(pct*100)}%</div></div>`;
+  }).join('')+`<div class="item" style="border-left-color:var(--acc)"><div class="main">${W(work)} × arbetsset</div><div class="val" style="color:var(--acc)">100%</div></div>`;
+}
+
+function renderLogga(){
+  fillRoutineSelect();
+  renderProgramChips();
+  const t=today();
+  const dn=document.getElementById('dayNote'); if(dn) dn.value=DB.dayNotes[t]||'';
+  const ar=document.getElementById('autoRest'); if(ar) ar.checked=!!DB.settings.autoRest;
+
+  const el=document.getElementById('todaySets');
+  const sets=DB.sets.filter(s=>s.date===t).reverse();
+  el.innerHTML = sets.length ? sets.map(s=>`
+    <div class="item" style="border-left-color:${groupColor(s.ex)}">
+      <div>
+        <div class="main">${s.ex}${tagBadge(s.tag)}</div>
+        <div class="sub">${s.time!=null ? '⏱ '+fmtTime(s.time) : W(s.weight)+' × '+s.reps+' · 1RM '+W(epley1RM(s.weight,s.reps))}${s.rpe?' · RPE '+s.rpe:''}${s.note?' · '+s.note:''}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:4px">
+        <span class="edit" onclick="editSet('${s.id}')">✎</span>
+        <button class="x" onclick="delSet('${s.id}')">×</button>
+      </div>
+    </div>`).join('')
+    : '<div class="empty">Inga set idag än. Välj en övning ovan och tryck Logga! 💪</div>';
+  sessRender();
+  const st=document.getElementById('sessToday');
+  if(st){ const sec=DB.sessions[t]||0; st.textContent = sec? '⏱ Sparad pass-tid idag: '+fmtTime(sec) : ''; }
+  renderGuided();
+}
+function onExerciseChange(){
+  const ex=document.getElementById('logExercise').value;
+  const timeBased=isTime(ex);
+  document.getElementById('weightRepsSection').style.display=timeBased?'none':'block';
+  document.getElementById('timeSection').style.display=timeBased?'block':'none';
+  const sets=DB.sets.filter(s=>s.ex===ex);
+  if(timeBased){
+    plankReset();
+    if(sets.length){
+      const lastDate=sets.map(s=>s.date).sort().slice(-1)[0];
+      const ref=sets.filter(s=>s.date===lastDate).slice(-1)[0];
+      document.getElementById('logTime').value=ref.time||''; syncPlankDisplay();
+    }
+  } else if(sets.length){
+    const lastDate=sets.map(s=>s.date).sort().slice(-1)[0];
+    const ref=sets.filter(s=>s.date===lastDate).slice(-1)[0];
+    document.getElementById('logWeight').value=wNum(ref.weight);
+    document.getElementById('logReps').value=ref.reps;
+  }
+  updateLogHint();
+}
+function updateLogHint(){
+  const ex=document.getElementById('logExercise').value;
+  const sets=DB.sets.filter(s=>s.ex===ex);
+  const hint=document.getElementById('logHint');
+  if(!sets.length){ hint.textContent = ex? 'Första gången du loggar '+ex+' 💪':''; return; }
+  const lastDate=sets.map(s=>s.date).sort().slice(-1)[0];
+  const lastSets=sets.filter(s=>s.date===lastDate);
+  if(isTime(ex)){
+    const best=Math.max(...sets.map(s=>s.time||0));
+    const summary=lastSets.map(s=>fmtTime(s.time)).join(', ');
+    hint.innerHTML=`Förra passet (${dateSv(lastDate)}): ${summary}<br>Längsta någonsin: ${fmtTime(best)}<br>💡 Försök slå <b>${fmtTime(best)}</b>`;
+    return;
+  }
+  const maxW=Math.max(...sets.map(s=>s.weight));
+  const summary=lastSets.map(s=>`${wNum(s.weight)}×${s.reps}`).join(', ');
+  // progressiv overload-förslag utifrån förra passet
+  const heavy=lastSets.reduce((a,s)=>s.weight>a.weight?s:a, lastSets[0]);
+  let sugg;
+  if(heavy.reps>=8) sugg=`💡 Förslag: öka till <b>${W(heavy.weight+step())}</b> idag`;
+  else sugg=`💡 Förslag: sikta på <b>${heavy.reps+1}+ reps</b> på ${W(heavy.weight)}`;
+  hint.innerHTML=`Förra passet (${dateSv(lastDate)}): ${summary}<br>Tyngsta någonsin: ${W(maxW)}<br>${sugg}`;
+}
+function saveDayNote(v){ const t=today(); if(v.trim()) DB.dayNotes[t]=v; else delete DB.dayNotes[t]; save(); }
+function delSet(id){
+  const s=DB.sets.find(x=>x.id===id); if(!s) return;
+  DB.sets=DB.sets.filter(s=>s.id!==id); save();
+  renderLogga(); renderHome();
+  if(currentEx) openDetail(currentEx);
+  showUndo('Set borttaget', ()=>{ DB.sets.push(s); save(); renderLogga(); renderHome(); if(currentEx) openDetail(currentEx); });
+}
+
+/* ================= KROPPSVIKT ================= */
+function logBodyWeight(){
+  const kg=U2K(parseFloat(document.getElementById('quickWeight').value));
+  if(isNaN(kg)){ toast('Ange vikt'); return; }
+  const t=today();
+  const existing=DB.weights.find(w=>w.date===t);
+  if(existing) existing.kg=kg;
+  else DB.weights.push({id:uid(),kg,date:t});
+  save(); document.getElementById('quickWeight').value='';
+  toast('Vikt sparad ✓'); renderHome();
+}
+function delWeight(id){ const w=DB.weights.find(x=>x.id===id); if(!w) return; DB.weights=DB.weights.filter(w=>w.id!==id); save(); renderMer(); renderHome(); showUndo('Viktpost borttagen', ()=>{ DB.weights.push(w); save(); renderMer(); renderHome(); }); }
+
+/* ================= DETALJ VY ================= */
+function openDetail(ex){
+  currentEx=ex;
+  showPage('detalj');
+  const dt=document.getElementById('detailTitle');
+  dt.textContent=ex; dt.style.color=groupColor(ex);
+  const sets=DB.sets.filter(s=>s.ex===ex).sort((a,b)=>a.date.localeCompare(b.date));
+  const timeMode=isTime(ex);
+
+  // toggla kort/etiketter beroende på övningstyp
+  document.getElementById('d-l-maxw').textContent = timeMode ? 'Längsta tid' : 'Tyngsta lyft';
+  document.getElementById('d-l-1rm').textContent  = timeMode ? 'Total tid'   : 'Est. 1RM';
+  document.getElementById('d-l-maxreps').textContent = timeMode ? 'Snitt tid' : 'Flest reps';
+  document.getElementById('h-weightChart').textContent = timeMode ? 'Tid över tid (sek)' : 'Tyngsta vikt över tid';
+  document.getElementById('card-1rmChart').style.display    = timeMode ? 'none' : '';
+  document.getElementById('card-volChart').style.display    = timeMode ? 'none' : '';
+  document.getElementById('card-repsPerWeight').style.display= timeMode ? 'none' : '';
+  document.getElementById('card-rmTable').style.display     = timeMode ? 'none' : '';
+
+  if(!sets.length){
+    document.getElementById('d-maxw').textContent='–';
+    document.getElementById('d-1rm').textContent='–';
+    document.getElementById('d-maxreps').textContent='–';
+    document.getElementById('d-sets').textContent='0';
+    document.getElementById('repsPerWeight').innerHTML='<div class="empty">Inga set loggade.</div>';
+    document.getElementById('exHistory').innerHTML='';
+    drawLineChart('exWeightChart',[],[]);
+    drawLineChart('exChart',[],[]);
+    drawLineChart('exVolChart',[],[]);
+    return;
+  }
+  const col=groupColor(ex);
+
+  if(timeMode){
+    const times=sets.map(s=>s.time||0);
+    const maxT=Math.max(...times);
+    const totT=times.reduce((a,b)=>a+b,0);
+    const avgT=Math.round(totT/times.length);
+    document.getElementById('d-maxw').textContent=fmtTime(maxT);
+    document.getElementById('d-1rm').textContent=fmtTime(totT);
+    document.getElementById('d-maxreps').textContent=fmtTime(avgT);
+    document.getElementById('d-sets').textContent=sets.length;
+
+    // längsta tid per datum
+    const tByDate={};
+    sets.forEach(s=>{ tByDate[s.date]=Math.max(tByDate[s.date]||0,s.time||0); });
+    const tDates=Object.keys(tByDate).sort();
+    drawLineChart('exWeightChart', tDates.map(dateSv), tDates.map(d=>tByDate[d]), col);
+
+    document.getElementById('exHistory').innerHTML=[...sets].reverse().map(s=>`
+      <div class="item">
+        <div>
+          <div class="main">⏱ ${fmtTime(s.time)}</div>
+          <div class="sub">${dateSv(s.date)}${s.note?' · '+s.note:''}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:4px">
+          <span class="edit" onclick="editSet('${s.id}')">✎</span>
+          <button class="x" onclick="delSet('${s.id}')">×</button>
+        </div>
+      </div>`).join('');
+    return;
+  }
+
+  const maxW=Math.max(...sets.map(s=>s.weight));
+  const maxReps=Math.max(...sets.map(s=>s.reps));
+  let best1rm=0; sets.forEach(s=>{best1rm=Math.max(best1rm,epley1RM(s.weight,s.reps));});
+  document.getElementById('d-maxw').textContent=W(maxW);
+  document.getElementById('d-1rm').textContent=W(best1rm);
+  document.getElementById('d-maxreps').textContent=maxReps;
+  document.getElementById('d-sets').textContent=sets.length;
+
+  // Tyngsta vikt över tid (per datum)
+  const wByDate={};
+  sets.forEach(s=>{ wByDate[s.date]=Math.max(wByDate[s.date]||0,s.weight); });
+  const wDates=Object.keys(wByDate).sort();
+  drawLineChart('exWeightChart', wDates.map(dateSv), wDates.map(d=>Math.round(K2U(wByDate[d])*10)/10), col);
+
+  // 1RM över tid (per datum, bästa)
+  const byDate={};
+  sets.forEach(s=>{ const e=epley1RM(s.weight,s.reps); byDate[s.date]=Math.max(byDate[s.date]||0,e); });
+  const dates=Object.keys(byDate).sort();
+  drawLineChart('exChart', dates.map(dateSv), dates.map(d=>Math.round(K2U(byDate[d])*10)/10), col);
+
+  // Volym över tid (summa vikt×reps per datum)
+  const volByDate={};
+  sets.forEach(s=>{ volByDate[s.date]=(volByDate[s.date]||0)+s.weight*s.reps; });
+  const vDates=Object.keys(volByDate).sort();
+  drawLineChart('exVolChart', vDates.map(dateSv), vDates.map(d=>Math.round(volByDate[d])), col);
+
+  // Reps per vikt (bästa reps på varje vikt)
+  const byWeight={};
+  sets.forEach(s=>{ byWeight[s.weight]=Math.max(byWeight[s.weight]||0,s.reps); });
+  const weights=Object.keys(byWeight).map(Number).sort((a,b)=>b-a);
+  document.getElementById('repsPerWeight').innerHTML=weights.map(w=>`
+    <div class="item">
+      <div class="main">${W(w)}</div>
+      <div class="val">${byWeight[w]} reps</div>
+    </div>`).join('');
+
+  // Beräknade maxvikter per rep-intervall (omvänd Epley från bästa 1RM)
+  const rmReps=[1,2,3,5,8,10,12];
+  document.getElementById('rmTable').innerHTML=rmReps.map(r=>{
+    const w=best1rm/(1+r/30);
+    return `<div class="item"><div class="main">${r} rep${r>1?'':''}</div><div class="val">${W(Math.round(w*2)/2)}</div></div>`;
+  }).join('');
+
+  // Historik
+  document.getElementById('exHistory').innerHTML=[...sets].reverse().map(s=>`
+    <div class="item">
+      <div>
+        <div class="main">${W(s.weight)} × ${s.reps}${tagBadge(s.tag)}</div>
+        <div class="sub">${dateSv(s.date)} · 1RM ${W(epley1RM(s.weight,s.reps))}${s.rpe?' · RPE '+s.rpe:''}${s.note?' · '+s.note:''}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:4px">
+        <span class="edit" onclick="editSet('${s.id}')">✎</span>
+        <button class="x" onclick="delSet('${s.id}')">×</button>
+      </div>
+    </div>`).join('');
+}
+
+/* ================= HEM ================= */
+function renderHome(){
+  // streak (unika träningsdagar i rad)
+  const days=[...new Set(DB.sets.map(s=>s.date))].sort();
+  document.getElementById('streak').textContent = days.length? '🔥 '+calcStreak(days)+' dgr streak':'';
+
+  const lastW=DB.weights.length?[...DB.weights].sort((a,b)=>a.date.localeCompare(b.date)).slice(-1)[0]:null;
+  document.getElementById('s-weight').textContent=lastW?W(lastW.kg):'–';
+  const workoutDays=new Set(DB.sets.map(s=>s.date)).size;
+  document.getElementById('s-workouts').textContent=workoutDays;
+
+  const weekAgo=new Date(Date.now()-7*864e5).toISOString().slice(0,10);
+  const recent=DB.sets.filter(s=>s.date>=weekAgo);
+  const vol=recent.reduce((a,s)=>a+(s.time!=null?0:s.weight*s.reps),0);
+  document.getElementById('s-volume').textContent=Math.round(vol).toLocaleString('sv-SE');
+  document.getElementById('s-sets').textContent=recent.length;
+
+  // viktgraf
+  const ws=[...DB.weights].sort((a,b)=>a.date.localeCompare(b.date));
+  drawLineChart('weightChart', ws.map(w=>dateSv(w.date)), ws.map(w=>Math.round(K2U(w.kg)*10)/10), '#48a3b5');
+  const tr=document.getElementById('weightTrend');
+  if(ws.length>=2){
+    const diff=ws[ws.length-1].kg-ws[0].kg;
+    const arrow=diff>0?'↑':diff<0?'↓':'→';
+    tr.innerHTML=`${arrow} ${W(Math.abs(diff))} sedan ${dateSv(ws[0].date)}`;
+  } else tr.textContent = ws.length? 'Logga mer för att se trend.' : 'Ingen viktdata än.';
+
+  // senaste set
+  const rs=[...DB.sets].sort((a,b)=>b.date.localeCompare(a.date)||b.id.localeCompare(a.id)).slice(0,6);
+  document.getElementById('recentSets').innerHTML = rs.length? rs.map(s=>`
+    <div class="item" onclick="openDetail('${s.ex.replace(/'/g,"\\'")}')" style="cursor:pointer">
+      <div><div class="main">${s.ex}</div><div class="sub">${dateSv(s.date)}</div></div>
+      <div class="val">${s.time!=null ? fmtTime(s.time) : wNum(s.weight)+'×'+s.reps}</div>
+    </div>`).join('') : '<div class="empty">Inga set loggade än. Gå till Logga!</div>';
+
+  renderWeekSummary(); renderFreshness(); renderStalled();
+}
+function calcStreak(sortedDays){
+  // räkna dagar bakåt från senaste träningsdag
+  let streak=1;
+  for(let i=sortedDays.length-1;i>0;i--){
+    const d1=new Date(sortedDays[i]), d0=new Date(sortedDays[i-1]);
+    const diff=Math.round((d1-d0)/864e5);
+    if(diff===1) streak++; else break;
+  }
+  return streak;
+}
+
+/* ================= KROPPSMÅTT ================= */
+function renderMeasureInputs(){
+  const el=document.getElementById('measureInputs');
+  el.innerHTML=BODYPARTS.map(p=>`
+    <div>
+      <label style="margin-top:0">${p}</label>
+      <input type="number" step="0.1" inputmode="decimal" id="m-${p}" placeholder="cm">
+    </div>`).join('');
+  const md=document.getElementById('measureDate'); if(!md.value) md.value=today();
+}
+function logMeasurement(){
+  const date=document.getElementById('measureDate').value||today();
+  const values={};
+  BODYPARTS.forEach(p=>{ const v=parseFloat(document.getElementById('m-'+p).value); if(!isNaN(v)) values[p]=v; });
+  if(!Object.keys(values).length){ toast('Fyll i minst ett mått'); return; }
+  const ex=DB.measurements.find(m=>m.date===date);
+  if(ex) ex.values=Object.assign(ex.values,values);
+  else DB.measurements.push({id:uid(),date,values});
+  save(); BODYPARTS.forEach(p=>document.getElementById('m-'+p).value='');
+  toast('Mått sparat ✓'); renderMeasureLatest();
+}
+function renderMeasureLatest(){
+  const el=document.getElementById('measureLatest');
+  const ms=[...DB.measurements].sort((a,b)=>a.date.localeCompare(b.date));
+  if(!ms.length){ el.innerHTML='<div class="empty">Inga mått ännu.</div>'; return; }
+  const latest=ms[ms.length-1];
+  el.innerHTML=BODYPARTS.filter(p=>latest.values[p]!=null).map(p=>{
+    // hitta föregående värde för samma del
+    let prev=null;
+    for(let i=ms.length-2;i>=0;i--){ if(ms[i].values[p]!=null){ prev=ms[i].values[p]; break; } }
+    let chg='';
+    if(prev!=null){ const d=latest.values[p]-prev; chg=` <span class="sub">(${d>0?'+':''}${fmt(d)})</span>`; }
+    return `<div class="item"><div class="main">${p}</div><div class="val">${fmt(latest.values[p])} cm${chg}</div></div>`;
+  }).join('') + `<div class="muted" style="margin-top:8px;text-align:center">Senast uppdaterat ${dateSv(latest.date)}</div>`;
+}
+
+/* ================= MER ================= */
+function renderMer(){
+  renderMeasureInputs(); renderMeasureLatest(); renderPhotos();
+  const ws=[...DB.weights].sort((a,b)=>b.date.localeCompare(a.date));
+  document.getElementById('weightHistory').innerHTML = ws.length? ws.map(w=>`
+    <div class="item">
+      <div class="main">${W(w.kg)}</div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <span class="sub">${dateSv(w.date)}</span>
+        <button class="x" onclick="delWeight('${w.id}')">×</button>
+      </div>
+    </div>`).join('') : '<div class="empty">Ingen viktdata.</div>';
+
+  if(DB.goal!=null) document.getElementById('goalWeight').value=wNum(DB.goal);
+  updateGoalStatus();
+  backupBanner();
+}
+function saveGoal(){
+  const g=U2K(parseFloat(document.getElementById('goalWeight').value));
+  DB.goal=isNaN(g)?null:g; save(); updateGoalStatus(); toast('Mål sparat');
+}
+function updateGoalStatus(){
+  const el=document.getElementById('goalStatus');
+  if(DB.goal==null){ el.textContent=''; return; }
+  const lastW=DB.weights.length?[...DB.weights].sort((a,b)=>a.date.localeCompare(b.date)).slice(-1)[0].kg:null;
+  if(lastW==null){ el.textContent='Logga din vikt för att följa målet.'; return; }
+  const diff=lastW-DB.goal;
+  if(Math.abs(diff)<0.3) el.innerHTML='🎯 Du är i mål!';
+  else el.innerHTML=`${W(Math.abs(diff))} kvar till målet (${W(DB.goal)}).`;
+}
+
+/* ================= EXPORT / IMPORT ================= */
+function exportData(){
+  const blob=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='gymtracker-backup-'+today()+'.json';
+  a.click();
+  DB.settings.lastBackup=today(); save(); backupBanner();
+  toast('Backup exporterad');
+}
+function importData(e){
+  const file=e.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=()=>{
+    try{
+      const d=JSON.parse(reader.result);
+      if(!d.sets||!d.exercises) throw new Error('fel format');
+      DB=normalize(d); save();
+      toast('Backup importerad ✓');
+      fillExerciseSelect(); showPage('hem');
+    }catch(err){ toast('Kunde inte läsa filen'); }
+  };
+  reader.readAsText(file);
+}
+function resetAll(){
+  if(!confirm('Radera ALL data permanent? Detta kan inte ångras.')) return;
+  if(!confirm('Är du helt säker?')) return;
+  DB=normalize({}); save(); fillExerciseSelect(); showPage('hem');
+  toast('All data raderad');
+}
+
+/* ================= VILOTIMER ================= */
+let timerInt=null, timerLeft=0;
+function toggleAutoRest(on){ DB.settings.autoRest=!!on; save(); toast(on?'Auto-vila på':'Auto-vila av'); }
+function startTimer(sec){
+  DB.settings.restTime=sec; save();
+  stopTimer(); timerLeft=sec; renderTimer();
+  timerInt=setInterval(()=>{
+    timerLeft--; renderTimer();
+    if(timerLeft<=0){
+      stopTimer(); toast('⏰ Vila klar!');
+      try{ beep(); }catch(e){}
+      if(navigator.vibrate) navigator.vibrate([200,100,200]);
+    }
+  },1000);
+}
+function stopTimer(){ if(timerInt) clearInterval(timerInt); timerInt=null; }
+function renderTimer(){
+  const m=Math.floor(timerLeft/60), s=timerLeft%60;
+  document.getElementById('timerDisplay').textContent=m+':'+String(s).padStart(2,'0');
+}
+function beep(){
+  const ctx=new (window.AudioContext||window.webkitAudioContext)();
+  const o=ctx.createOscillator(), g=ctx.createGain();
+  o.connect(g); g.connect(ctx.destination);
+  o.frequency.value=880; o.type='sine';
+  g.gain.setValueAtTime(.3,ctx.currentTime);
+  o.start(); o.stop(ctx.currentTime+.25);
+}
+
+/* ================= CANVAS GRAF ================= */
+function drawBarChart(id, labels, values, color='#6c5ce7'){
+  const c=document.getElementById(id);
+  const dpr=window.devicePixelRatio||1;
+  const W=c.clientWidth, H=c.height;
+  c.width=W*dpr; c.height=H*dpr;
+  const ctx=c.getContext('2d'); ctx.scale(dpr,dpr);
+  ctx.clearRect(0,0,W,H);
+  const max=Math.max(1,...values);
+  const pad={l:24,r:10,t:14,b:22};
+  const plotW=W-pad.l-pad.r, plotH=H-pad.t-pad.b, n=values.length;
+  const bw=Math.min(34,(plotW/n)*0.6);
+  const steps=Math.min(max,4);
+  ctx.strokeStyle='#eae7f3'; ctx.fillStyle='#7b7690'; ctx.font='10px sans-serif'; ctx.textAlign='right';
+  for(let i=0;i<=steps;i++){
+    const v=Math.round(max*i/steps), y=pad.t+plotH-(v/max)*plotH;
+    ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(W-pad.r,y); ctx.stroke();
+    ctx.fillText(v, pad.l-4, y+3);
+  }
+  values.forEach((v,i)=>{
+    const x=pad.l+(i+0.5)*(plotW/n);
+    if(v>0){
+      const h=(v/max)*plotH, y=pad.t+plotH-h, r=4, bx=x-bw/2;
+      ctx.fillStyle=color; ctx.beginPath();
+      ctx.moveTo(bx,pad.t+plotH); ctx.lineTo(bx,y+r);
+      ctx.quadraticCurveTo(bx,y,bx+r,y); ctx.lineTo(bx+bw-r,y);
+      ctx.quadraticCurveTo(bx+bw,y,bx+bw,y+r); ctx.lineTo(bx+bw,pad.t+plotH);
+      ctx.closePath(); ctx.fill();
+      ctx.fillStyle=color; ctx.font='bold 10px sans-serif'; ctx.textAlign='center'; ctx.fillText(v,x,y-3);
+    }
+  });
+  ctx.fillStyle='#7b7690'; ctx.font='9px sans-serif'; ctx.textAlign='center';
+  labels.forEach((l,i)=>{ ctx.fillText(l, pad.l+(i+0.5)*(plotW/n), H-6); });
+}
+function drawLineChart(id, labels, values, color='#6c5ce7'){
+  const c=document.getElementById(id);
+  const dpr=window.devicePixelRatio||1;
+  const W=c.clientWidth, H=c.height;
+  c.width=W*dpr; c.height=H*dpr;
+  const ctx=c.getContext('2d'); ctx.scale(dpr,dpr);
+  ctx.clearRect(0,0,W,H);
+  if(!values.length){
+    ctx.fillStyle='#a29cb5'; ctx.font='13px sans-serif'; ctx.textAlign='center';
+    ctx.fillText('Ingen data än', W/2, H/2); return;
+  }
+  const pad={l:36,r:12,t:14,b:22};
+  const min=Math.min(...values), max=Math.max(...values);
+  const range=(max-min)||1;
+  const plotW=W-pad.l-pad.r, plotH=H-pad.t-pad.b;
+  const X=i=>pad.l + (values.length===1? plotW/2 : (i/(values.length-1))*plotW);
+  const Y=v=>pad.t + plotH - ((v-min)/range)*plotH;
+
+  // gridlinjer + y-labels
+  ctx.strokeStyle='#eae7f3'; ctx.fillStyle='#7b7690'; ctx.font='10px sans-serif'; ctx.textAlign='right';
+  for(let i=0;i<=3;i++){
+    const v=min+(range*i/3), y=Y(v);
+    ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(W-pad.r,y); ctx.stroke();
+    ctx.fillText(fmt(v), pad.l-6, y+3);
+  }
+  // area
+  ctx.beginPath();
+  values.forEach((v,i)=>{ const x=X(i),y=Y(v); i?ctx.lineTo(x,y):ctx.moveTo(x,y); });
+  ctx.lineTo(X(values.length-1), pad.t+plotH); ctx.lineTo(X(0), pad.t+plotH); ctx.closePath();
+  const grad=ctx.createLinearGradient(0,pad.t,0,pad.t+plotH);
+  grad.addColorStop(0,color+'44'); grad.addColorStop(1,color+'00');
+  ctx.fillStyle=grad; ctx.fill();
+  // linje
+  ctx.beginPath();
+  values.forEach((v,i)=>{ const x=X(i),y=Y(v); i?ctx.lineTo(x,y):ctx.moveTo(x,y); });
+  ctx.strokeStyle=color; ctx.lineWidth=2.5; ctx.lineJoin='round'; ctx.stroke();
+  // punkter
+  ctx.fillStyle=color;
+  values.forEach((v,i)=>{ ctx.beginPath(); ctx.arc(X(i),Y(v),3,0,7); ctx.fill(); });
+  // x-labels (första, mitten, sista)
+  ctx.fillStyle='#7b7690'; ctx.font='10px sans-serif'; ctx.textAlign='center';
+  const idxs=values.length<=3?labels.map((_,i)=>i):[0,Math.floor(values.length/2),values.length-1];
+  idxs.forEach(i=>ctx.fillText(labels[i], X(i), H-6));
+}
+
+/* ================= UPPREPA FÖRRA PASSET ================= */
+function lastWorkoutDate(){
+  const dates=[...new Set(DB.sets.map(s=>s.date))].sort();
+  const t=today();
+  for(let i=dates.length-1;i>=0;i--){ if(dates[i]!==t) return dates[i]; }
+  return null;
+}
+function repeatLastWorkout(){
+  const d=lastWorkoutDate();
+  if(!d){ toast('Inget tidigare pass att upprepa'); return; }
+  const prev=DB.sets.filter(s=>s.date===d);
+  if(!prev.length){ toast('Inget att upprepa'); return; }
+  if(!confirm('Logga om förra passets '+prev.length+' set från '+dateSv(d)+' på dagens datum?')) return;
+  const t=today(), added=[];
+  prev.forEach(s=>{ const ns=Object.assign({},s,{id:uid(),date:t}); DB.sets.push(ns); added.push(ns.id); });
+  save();
+  showUndo(prev.length+' set kopierade från '+dateSv(d), ()=>{
+    DB.sets=DB.sets.filter(x=>!added.includes(x.id)); save(); renderLogga(); renderHome();
+  });
+  renderLogga(); renderHome();
+}
+
+/* ================= PASS-TIMER (hela passet) ================= */
+let sessInt=null, sessBase=0, sessT0=0;
+function sessElapsed(){ return sessBase + (sessInt? Math.round((Date.now()-sessT0)/1000):0); }
+function sessRender(){ const el=document.getElementById('sessDisplay'); if(el) el.textContent=fmtTime(sessElapsed()); }
+function sessStartStop(){
+  const btn=document.getElementById('sessBtn'); if(!btn) return;
+  if(sessInt){ clearInterval(sessInt); sessInt=null; sessBase=sessElapsed(); btn.textContent='▶ Fortsätt'; }
+  else { sessT0=Date.now(); sessInt=setInterval(sessRender,1000); btn.textContent='⏸ Pausa'; }
+  sessRender();
+}
+function sessSave(){
+  const sec=sessElapsed();
+  if(sec<=0){ toast('Starta timern först'); return; }
+  if(sessInt){ clearInterval(sessInt); sessInt=null; const b=document.getElementById('sessBtn'); if(b) b.textContent='▶ Starta'; }
+  const t=today();
+  DB.sessions[t]=(DB.sessions[t]||0)+sec; save();
+  sessBase=0; sessRender();
+  toast('Pass-tid sparad: '+fmtTime(sec)); renderLogga();
+}
+function sessReset(){
+  if(sessInt){ clearInterval(sessInt); sessInt=null; }
+  sessBase=0; const b=document.getElementById('sessBtn'); if(b) b.textContent='▶ Starta'; sessRender();
+}
+
+/* ================= MUSKELÅTERHÄMTNING ================= */
+function renderFreshness(){
+  const el=document.getElementById('freshness'); if(!el) return;
+  const groups=groupOrder().filter(g=>g!=='Övrigt' && DB.exercises.some(e=>e.group===g));
+  const t=new Date(today());
+  const rows=groups.map(g=>{
+    const gsets=DB.sets.filter(s=>groupOf(s.ex)===g);
+    if(!gsets.length) return {g,days:null};
+    const last=gsets.map(s=>s.date).sort().slice(-1)[0];
+    return {g,days:Math.round((t-new Date(last))/864e5)};
+  }).sort((a,b)=>{ if(a.days==null) return 1; if(b.days==null) return -1; return b.days-a.days; });
+  el.innerHTML=rows.map(r=>{
+    const col=(GROUPS[r.g]||GROUPS['Övrigt']).color;
+    let status, badge;
+    if(r.days==null){ status='Aldrig tränad'; badge='<span class="fresh-badge">–</span>'; }
+    else if(r.days>=2){ status=r.days+' dgr vila'; badge='<span class="fresh-badge ready">Redo</span>'; }
+    else if(r.days===1){ status='Tränad igår'; badge='<span class="fresh-badge soon">Snart</span>'; }
+    else { status='Tränad idag'; badge='<span class="fresh-badge rest">Vilar</span>'; }
+    return `<div class="item" style="border-left-color:${col}">
+      <div><div class="main" style="color:${col}">${r.g}</div><div class="sub">${status}</div></div>
+      <div class="val">${badge}</div></div>`;
+  }).join('') || '<div class="empty">Logga pass för att se återhämtning.</div>';
+}
+
+/* ================= STAGNATION ================= */
+function renderStalled(){
+  const el=document.getElementById('stalled'); const card=document.getElementById('card-stalled');
+  if(!el) return;
+  const t=new Date(today()), items=[];
+  DB.exercises.forEach(o=>{
+    const ex=o.name; if(isTime(ex)) return;
+    const sets=DB.sets.filter(s=>s.ex===ex && s.time==null);
+    if(new Set(sets.map(s=>s.date)).size<3) return;
+    let best=0, bestDate=null;
+    [...sets].sort((a,b)=>a.date.localeCompare(b.date)).forEach(s=>{ const e=epley1RM(s.weight,s.reps); if(e>best){ best=e; bestDate=s.date; } });
+    if(!bestDate) return;
+    const days=Math.round((t-new Date(bestDate))/864e5);
+    if(days>=21) items.push({ex,days,best,col:groupColor(ex)});
+  });
+  items.sort((a,b)=>b.days-a.days);
+  if(!items.length){ if(card) card.style.display='none'; return; }
+  if(card) card.style.display='';
+  el.innerHTML=items.slice(0,8).map(i=>`
+    <div class="item" onclick="openDetail('${i.ex.replace(/'/g,"\\'")}')" style="cursor:pointer;border-left-color:${i.col}">
+      <div><div class="main">${i.ex}</div><div class="sub">Inget PR på ${i.days} dgr · testa deload eller nya rep-intervall</div></div>
+      <div class="val" style="color:${i.col}">${W(i.best)}<div class="sub" style="text-align:right">1RM</div></div>
+    </div>`).join('');
+}
+
+/* ================= BALANS (push/pull/ben/core) ================= */
+function renderBalance(){
+  const el=document.getElementById('balance'); if(!el) return;
+  const cat={};
+  DB.sets.forEach(s=>{ if(s.time!=null) return; const c=catOf(groupOf(s.ex)); cat[c]=(cat[c]||0)+s.weight*s.reps; });
+  const order=['Push','Pull','Ben','Core','Övrigt'].filter(c=>cat[c]);
+  if(!order.length){ el.innerHTML='<div class="empty">Logga set för att se balans.</div>'; return; }
+  const max=Math.max(...order.map(c=>cat[c]));
+  let html=order.map(c=>{
+    const m=CAT_META[c]; const pct=Math.round(cat[c]/max*100);
+    return `<div style="margin:12px 0">
+      <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:700;margin-bottom:5px">
+        <span style="color:${m.color}">${m.label}</span><span class="muted">${Math.round(cat[c]).toLocaleString('sv-SE')} kg</span></div>
+      <div style="background:var(--card2);border-radius:999px;height:11px;overflow:hidden">
+        <div style="width:${pct}%;height:100%;background:${m.color};border-radius:999px"></div></div></div>`;
+  }).join('');
+  if(cat.Push && cat.Pull){
+    const ratio=cat.Push/cat.Pull; let note;
+    if(ratio>1.3) note='Du tränar mycket mer push än pull – lägg gärna till mer ryggträning för balans.';
+    else if(ratio<0.77) note='Du tränar mycket mer pull än push.';
+    else note='Fin balans mellan push och pull! 👍';
+    html+=`<div class="muted" style="margin-top:12px">Push:Pull = <b>${ratio.toFixed(2)} : 1</b><br>${note}</div>`;
+  }
+  el.innerHTML=html;
+}
+
+/* ================= VECKOSAMMANFATTNING ================= */
+function renderWeekSummary(){
+  const ms=weekStart();
+  const wsets=DB.sets.filter(s=>s.date>=ms);
+  const passes=new Set(wsets.map(s=>s.date)).size;
+  const vol=wsets.reduce((a,s)=>a+(s.time!=null?0:s.weight*s.reps),0);
+  const sorted=[...DB.sets].filter(s=>s.time==null).sort((a,b)=>a.date.localeCompare(b.date)||a.id.localeCompare(b.id));
+  const best={}; let prCount=0;
+  sorted.forEach(s=>{ const e=epley1RM(s.weight,s.reps); if(e>(best[s.ex]||0)){ if(best[s.ex]!==undefined && s.date>=ms) prCount++; best[s.ex]=e; } });
+  const set=(id,v)=>{ const el=document.getElementById(id); if(el) el.textContent=v; };
+  set('wk-pass',passes); set('wk-sets',wsets.length);
+  set('wk-vol',Math.round(vol).toLocaleString('sv-SE')); set('wk-pr',prCount);
+}
+
+/* ================= ÅNGRA (undo) ================= */
+let _undoT=null;
+function showUndo(msg, fn){
+  const bar=document.getElementById('undobar'); if(!bar) return;
+  bar.querySelector('.undo-msg').textContent=msg;
+  const btn=bar.querySelector('.undo-btn');
+  btn.onclick=()=>{ clearTimeout(_undoT); bar.classList.remove('show'); try{ fn(); }catch(e){} toast('Ångrat ✓'); };
+  bar.classList.add('show');
+  clearTimeout(_undoT); _undoT=setTimeout(()=>bar.classList.remove('show'),6000);
+}
+function tagBadge(tag){
+  if(tag==='superset') return ' <span class="mini-badge ss">SS</span>';
+  if(tag==='dropset') return ' <span class="mini-badge ds">DROP</span>';
+  return '';
+}
+
+/* ================= LAGRINGSMÄTARE ================= */
+function storageBytes(){ try{ return new Blob([localStorage.getItem(KEY)||'']).size; }catch(e){ return (localStorage.getItem(KEY)||'').length*2; } }
+function renderStorageMeter(){
+  const el=document.getElementById('storageMeter'); if(!el) return;
+  const bytes=storageBytes(), limit=5*1024*1024;
+  const pct=Math.min(100,Math.round(bytes/limit*100));
+  const mb=(bytes/1048576).toFixed(2);
+  const col=pct>=85?'#df6b6b':pct>=60?'#d29a4a':'#4aa891';
+  let warn='';
+  if(pct>=85) warn='<div style="color:#df6b6b;font-weight:600;margin-top:7px;font-size:12px">⚠️ Lagringen är nästan full. Exportera en backup och ta bort gamla bilder – annars kan ny data sluta sparas.</div>';
+  el.innerHTML=`<div style="display:flex;justify-content:space-between;font-size:12px;font-weight:700;margin-bottom:5px">
+      <span>Lagring använd</span><span class="muted">${mb} MB / ~5 MB (${pct}%)</span></div>
+    <div style="background:var(--card2);border-radius:999px;height:10px;overflow:hidden">
+      <div style="width:${pct}%;height:100%;background:${col};border-radius:999px"></div></div>${warn}`;
+}
+
+/* ================= INIT ================= */
+document.getElementById('logDate').value=today();
+document.getElementById('logExercise').addEventListener('change',onExerciseChange);
+['logWeight','logReps','logTime'].forEach(id=>{
+  const el=document.getElementById(id);
+  if(el) el.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); logSet(); } });
+});
+fillGroupSelect();
+fillExerciseSelect();
+applyUnitLabels();
+updateLogHint();
+renderHome();
+// backup-påminnelse vid start
+if((DB.sets.length||DB.weights.length) && daysSince(DB.settings.lastBackup)>=14){
+  setTimeout(()=>toast(DB.settings.lastBackup?'💾 Dags att exportera en ny backup':'💾 Kom ihåg att exportera en backup'),1200);
+}
+let _resizeT=null;
+window.addEventListener('resize',()=>{
+  clearTimeout(_resizeT);
+  _resizeT=setTimeout(()=>{
+    const act=document.querySelector('.page.active');
+    if(!act) return;
+    const p=act.id.replace('page-','');
+    if(p==='detalj'){ if(currentEx) openDetail(currentEx); return; }
+    if(p==='hem') renderHome();
+    else if(p==='logga') renderLogga();
+    else if(p==='ovningar'){ renderExercises(); }
+    else if(p==='statistik') renderStatistik();
+    else if(p==='mer') renderMer();
+  },160);
+});
+</script>
+</body>
+</html>
